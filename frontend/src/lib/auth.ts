@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api").replace(/\/+$/, "");
 const AUTH_TOKEN_KEY = "mro_hris_token";
 
 export type AuthUser = {
@@ -52,6 +52,7 @@ export async function login(email: string, password: string): Promise<AuthUser> 
 	const res = await fetch(`${API_URL}/auth/login`, {
 		method: "POST",
 		headers: {
+			Accept: "application/json",
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({ email, password }),
@@ -59,6 +60,11 @@ export async function login(email: string, password: string): Promise<AuthUser> 
 
 	if (!res.ok) {
 		throw new Error("Inloggen mislukt. Controleer je e-mail en wachtwoord.");
+	}
+
+	const contentType = res.headers.get("content-type") ?? "";
+	if (!contentType.includes("application/json")) {
+		throw new Error("Backend gaf geen JSON terug. Controleer NEXT_PUBLIC_API_URL in Vercel en APP_URL/CORS in Railway.");
 	}
 
 	const payload = (await res.json()) as LoginResponse;
@@ -76,6 +82,7 @@ export async function getMe(): Promise<AuthUser> {
 
 	const res = await fetch(`${API_URL}/auth/me`, {
 		headers: {
+			Accept: "application/json",
 			Authorization: `Bearer ${token}`,
 		},
 	});
@@ -95,6 +102,7 @@ export async function logout(): Promise<void> {
 		await fetch(`${API_URL}/auth/logout`, {
 			method: "POST",
 			headers: {
+				Accept: "application/json",
 				Authorization: `Bearer ${token}`,
 			},
 		});

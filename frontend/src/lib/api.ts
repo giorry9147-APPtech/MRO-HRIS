@@ -1,6 +1,6 @@
 import { getAuthToken } from "@/lib/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api").replace(/\/+$/, "");
 
 export class ApiError extends Error {
 	status: number;
@@ -14,6 +14,7 @@ export class ApiError extends Error {
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
 	const token = getAuthToken();
 	const headers = new Headers(options.headers);
+	headers.set("Accept", "application/json");
 
 	if (!(options.body instanceof FormData)) {
 		headers.set("Content-Type", "application/json");
@@ -49,6 +50,11 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
 		}
 
 		throw new ApiError(res.status, errorMessage);
+	}
+
+	const contentType = res.headers.get("content-type") ?? "";
+	if (!contentType.includes("application/json")) {
+		throw new ApiError(res.status, "De API gaf geen JSON terug. Controleer NEXT_PUBLIC_API_URL en backend instellingen.");
 	}
 
 	return res.json() as Promise<T>;
