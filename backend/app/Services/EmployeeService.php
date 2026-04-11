@@ -11,14 +11,29 @@ class EmployeeService
 {
 	public function list(array $filters = []): LengthAwarePaginator
 	{
-		$query = Employee::query()->latest();
+		$query = Employee::query()
+			->select([
+				'id',
+				'employee_number',
+				'first_name',
+				'last_name',
+				'email',
+				'phone',
+				'address',
+				'profile_photo_path',
+				'date_joined',
+				'status',
+				'created_at',
+				'updated_at',
+			])
+			->latest('id');
 
 		if (!empty($filters['status'])) {
 			$query->where('status', $filters['status']);
 		}
 
 		if (!empty($filters['q'])) {
-			$search = $filters['q'];
+			$search = trim((string) $filters['q']);
 			$query->where(function ($innerQuery) use ($search) {
 				$innerQuery
 					->where('employee_number', 'like', "%{$search}%")
@@ -28,8 +43,9 @@ class EmployeeService
 		}
 
 		$perPage = (int) ($filters['per_page'] ?? 15);
+		$perPage = $perPage > 0 ? min($perPage, 100) : 15;
 
-		return $query->paginate($perPage > 0 ? $perPage : 15);
+		return $query->paginate($perPage);
 	}
 
 	public function create(array $data): Employee

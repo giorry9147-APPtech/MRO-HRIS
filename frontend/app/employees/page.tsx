@@ -31,7 +31,7 @@ export default function EmployeesPage() {
 	useEffect(() => {
 		async function loadEmployees() {
 			try {
-				const response = await apiFetch<EmployeeCollectionResponse>("/employees");
+				const response = await apiFetch<EmployeeCollectionResponse>("/employees?per_page=25");
 				setEmployees(response.data ?? []);
 			} catch (err) {
 				if (err instanceof ApiError && err.status === 401) {
