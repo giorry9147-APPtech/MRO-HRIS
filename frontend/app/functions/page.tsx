@@ -100,7 +100,7 @@ export default function FunctionsPage() {
 
 	return (
 		<ModuleFrame
-			title="Functions"
+			title="Functies"
 			subtitle="Standaardiseer functieprofielen en status."
 			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek functie of code" /></div>}
 		>
@@ -132,8 +132,8 @@ export default function FunctionsPage() {
 							{item.description && <div className="muted">{item.description}</div>}
 						</div>
 						<div className="list-row-actions">
-							{canCreate && <button className="btn secondary" type="button" onClick={() => startEdit(item)}>Edit</button>}
-							{canDelete && <button className="btn secondary" type="button" onClick={() => void handleDelete(item.id)}>Delete</button>}
+							{canCreate && <button className="btn secondary" type="button" onClick={() => startEdit(item)}>Bewerken</button>}
+							{canDelete && <button className="btn secondary" type="button" onClick={() => void handleDelete(item.id)}>Verwijderen</button>}
 						</div>
 					</div>
 				))}

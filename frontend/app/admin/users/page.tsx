@@ -44,7 +44,7 @@ export default function AdminUserScopePage() {
 				setDirectorates(directoratesResp.data ?? []);
 				setDepartments(departmentsResp.data ?? []);
 			} catch {
-				setError("Kon gebruikers-scope gegevens niet laden.");
+				setError("Kon gebruikersscope-gegevens niet laden.");
 			}
 		}
 
@@ -88,11 +88,11 @@ export default function AdminUserScopePage() {
 	}
 
 	if (forbidden) {
-		return <main style={{ padding: "1.5rem" }}><p>Je hebt geen rechten om user scopes te beheren.</p></main>;
+		return <main style={{ padding: "1.5rem" }}><p>Je hebt geen rechten om gebruikersscopes te beheren.</p></main>;
 	}
 
 	return (
-		<ModuleFrame title="Admin - User Scopes" subtitle="Beheer zichtbaarheid per gebruiker op directoraat/afdeling niveau.">
+		<ModuleFrame title="Beheer - Gebruikersscopes" subtitle="Beheer zichtbaarheid per gebruiker op directoraat- en afdelingsniveau.">
 			{error && <p className="error">{error}</p>}
 
 			<div className="table-wrapper">
@@ -100,7 +100,7 @@ export default function AdminUserScopePage() {
 					<thead>
 						<tr>
 							<th>Gebruiker</th>
-							<th>Scope Type</th>
+							<th>Scopetype</th>
 							<th>Toegestane Directoraten / Afdelingen</th>
 							<th>Actie</th>
 						</tr>
@@ -120,9 +120,9 @@ export default function AdminUserScopePage() {
 											setUsers((prev) => prev.map((row) => row.id === user.id ? { ...row, scope_type: next } : row));
 										}}
 									>
-										<option value="all">All</option>
-										<option value="directorates">Directorates</option>
-										<option value="departments">Departments</option>
+										<option value="all">Alles</option>
+										<option value="directorates">Directoraten</option>
+										<option value="departments">Afdelingen</option>
 									</select>
 								</td>
 								<td>

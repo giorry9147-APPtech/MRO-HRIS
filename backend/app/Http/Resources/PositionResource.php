@@ -13,6 +13,8 @@ class PositionResource extends JsonResource
 			'id' => $this->id,
 			'department_id' => $this->department_id,
 			'department_name' => $this->department?->name,
+			'directorate_id' => $this->department?->directorate_id,
+			'directorate_name' => $this->department?->directorate?->name,
 			'job_function_id' => $this->job_function_id,
 			'job_function_title' => $this->jobFunction?->title,
 			'title' => $this->title,

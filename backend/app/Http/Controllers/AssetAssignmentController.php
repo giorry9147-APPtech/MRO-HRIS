@@ -51,6 +51,10 @@ class AssetAssignmentController extends Controller
 
 	public function destroy(AssetAssignment $assetAssignment): JsonResponse
 	{
+		if ($assetAssignment->status === 'assigned') {
+			$assetAssignment->asset()->update(['status' => 'available']);
+		}
+
 		$assetAssignment->delete();
 
 		return response()->json(['message' => 'Asset assignment deleted.']);

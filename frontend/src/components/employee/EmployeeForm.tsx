@@ -49,20 +49,21 @@ export default function EmployeeForm({ initialValues, onSubmit, submitLabel }: E
 
 	return (
 		<form onSubmit={handleSubmit} style={{ display: "grid", gap: "0.75rem", maxWidth: "520px" }}>
-			<input value={values.employee_number} onChange={(event) => setField("employee_number", event.target.value)} placeholder="Employee number" required />
-			<input value={values.first_name} onChange={(event) => setField("first_name", event.target.value)} placeholder="First name" required />
-			<input value={values.last_name} onChange={(event) => setField("last_name", event.target.value)} placeholder="Last name" required />
-			<input value={values.email} onChange={(event) => setField("email", event.target.value)} placeholder="Email" type="email" />
-			<input value={values.phone} onChange={(event) => setField("phone", event.target.value)} placeholder="Phone" />
-			<textarea value={values.address} onChange={(event) => setField("address", event.target.value)} placeholder="Address" rows={3} />
-			<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setField("profile_photo", event.target.files?.[0] ?? null)} />
+			<input value={values.employee_number} onChange={(event) => setField("employee_number", event.target.value)} placeholder="Personeelsnummer" required />
+			<input value={values.first_name} onChange={(event) => setField("first_name", event.target.value)} placeholder="Voornaam" required />
+			<input value={values.last_name} onChange={(event) => setField("last_name", event.target.value)} placeholder="Achternaam" required />
+			<input value={values.email} onChange={(event) => setField("email", event.target.value)} placeholder="E-mailadres" type="email" />
+			<input value={values.phone} onChange={(event) => setField("phone", event.target.value)} placeholder="Telefoon" />
+			<textarea value={values.address} onChange={(event) => setField("address", event.target.value)} placeholder="Adres" rows={3} />
+			<label htmlFor="profile-photo-input">Pasfoto</label>
+			<input id="profile-photo-input" type="file" aria-label="Pasfoto uploaden" title="Pasfoto uploaden" accept="image/png,image/jpeg,image/webp" onChange={(event) => setField("profile_photo", event.target.files?.[0] ?? null)} />
 			<input value={values.date_joined} onChange={(event) => setField("date_joined", event.target.value)} type="date" />
 			<select value={values.status} onChange={(event) => setField("status", event.target.value)}>
-				<option value="active">Active</option>
-				<option value="inactive">Inactive</option>
-				<option value="on_leave">On leave</option>
-				<option value="suspended">Suspended</option>
-				<option value="exited">Exited</option>
+				<option value="active">Actief</option>
+				<option value="inactive">Inactief</option>
+				<option value="on_leave">Met verlof</option>
+				<option value="suspended">Geschorst</option>
+				<option value="exited">Uit dienst</option>
 			</select>
 			<button type="submit" disabled={submitting}>{submitting ? "Bezig..." : submitLabel}</button>
 			{error && <p style={{ color: "crimson" }}>{error}</p>}

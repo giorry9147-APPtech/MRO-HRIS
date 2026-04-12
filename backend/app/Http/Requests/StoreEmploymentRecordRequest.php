@@ -16,6 +16,7 @@ class StoreEmploymentRecordRequest extends FormRequest
 		return [
 			'employee_id' => ['required', 'exists:employees,id'],
 			'position_id' => ['nullable', 'exists:positions,id'],
+			'job_function_id' => ['nullable', 'exists:job_functions,id'],
 			'start_date' => ['required', 'date'],
 			'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
 			'employment_type' => ['required', 'string', 'max:50'],

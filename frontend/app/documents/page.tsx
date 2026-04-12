@@ -81,7 +81,7 @@ export default function DocumentsPage() {
 
 	return (
 		<ModuleFrame
-			title="Documents"
+			title="Documenten"
 			subtitle="Dossierbeheer met upload en zoekfunctie."
 			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek document" /></div>}
 		>

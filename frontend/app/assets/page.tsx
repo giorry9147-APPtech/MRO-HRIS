@@ -18,6 +18,23 @@ export default function AssetsPage() {
   const canCreate = hasPermission(user, "assets.assign");
   const canDelete = hasPermission(user, "assets.return");
 
+  function getStatusLabel(status: string) {
+    switch (status) {
+      case "available":
+        return "Beschikbaar";
+      case "assigned":
+        return "Toegewezen";
+      case "under_maintenance":
+        return "In onderhoud";
+      case "retired":
+        return "Uit gebruik";
+      case "lost":
+        return "Vermist";
+      default:
+        return status;
+    }
+  }
+
   useEffect(() => {
     if (loading || forbidden) {
       return;
@@ -28,7 +45,7 @@ export default function AssetsPage() {
         const response = await apiFetch<{ data: Array<{ id: number; asset_tag: string; name: string; status: string }> }>("/assets");
         setItems(response.data ?? []);
       } catch {
-        setError("Assets konden niet worden geladen.");
+  		setError("Bedrijfsmiddelen konden niet worden geladen.");
       }
     }
 
@@ -57,7 +74,7 @@ export default function AssetsPage() {
       setName("");
       setEditingId(null);
     } catch {
-      setError("Asset kon niet worden aangemaakt.");
+	  setError("Bedrijfsmiddel kon niet worden opgeslagen.");
     }
   }
 
@@ -80,20 +97,20 @@ export default function AssetsPage() {
   }
 
   if (forbidden) {
-    return <main style={{ padding: "1.5rem" }}><p>Je hebt geen rechten om assets te bekijken.</p></main>;
+	return <main style={{ padding: "1.5rem" }}><p>Je hebt geen rechten om bedrijfsmiddelen te bekijken.</p></main>;
   }
 
   return (
     <ModuleFrame
-      title="Assets"
+      title="Bedrijfsmiddelen"
       subtitle="Registratie en statusbeheer van bedrijfsmiddelen."
-      filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek asset" /></div>}
+	  filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek bedrijfsmiddel" /></div>}
     >
       {error && <p className="error">{error}</p>}
 
       {canCreate && (
         <form onSubmit={handleCreate} className="filter-row">
-          <input value={assetTag} onChange={(event) => setAssetTag(event.target.value)} placeholder="Asset tag" required />
+		  <input value={assetTag} onChange={(event) => setAssetTag(event.target.value)} placeholder="Assetnummer" required />
           <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Naam" required />
           <button className="btn" type="submit">{editingId ? "Opslaan" : "Toevoegen"}</button>
         </form>
@@ -104,11 +121,11 @@ export default function AssetsPage() {
           <div key={item.id} className="list-row">
             <div>
               <strong>{item.asset_tag}</strong> - {item.name}
-              <div className="muted">Status: {item.status}</div>
+			  <div className="muted">Status: {getStatusLabel(item.status)}</div>
             </div>
             <div className="list-row-actions">
-              {canCreate && <button className="btn secondary" type="button" onClick={() => { setEditingId(item.id); setAssetTag(item.asset_tag); setName(item.name); }}>Edit</button>}
-              {canDelete && <button className="btn secondary" type="button" onClick={() => void handleDelete(item.id)}>Delete</button>}
+			  {canCreate && <button className="btn secondary" type="button" onClick={() => { setEditingId(item.id); setAssetTag(item.asset_tag); setName(item.name); }}>Bewerken</button>}
+			  {canDelete && <button className="btn secondary" type="button" onClick={() => void handleDelete(item.id)}>Verwijderen</button>}
             </div>
           </div>
         ))}

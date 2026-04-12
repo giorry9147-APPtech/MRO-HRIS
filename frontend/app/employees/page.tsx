@@ -20,6 +20,23 @@ type EmployeeCollectionResponse = {
 	data: Employee[];
 };
 
+function getStatusLabel(status: string) {
+	switch (status) {
+		case "active":
+			return "Actief";
+		case "inactive":
+			return "Inactief";
+		case "on_leave":
+			return "Met verlof";
+		case "suspended":
+			return "Geschorst";
+		case "exited":
+			return "Uit dienst";
+		default:
+			return status;
+	}
+}
+
 export default function EmployeesPage() {
 	const router = useRouter();
 	const { user } = useAuthGuard();
@@ -31,7 +48,7 @@ export default function EmployeesPage() {
 	useEffect(() => {
 		async function loadEmployees() {
 			try {
-				const response = await apiFetch<EmployeeCollectionResponse>("/employees?per_page=25");
+				const response = await apiFetch<EmployeeCollectionResponse>("/employees?per_page=50");
 				setEmployees(response.data ?? []);
 			} catch (err) {
 				if (err instanceof ApiError && err.status === 401) {
@@ -44,7 +61,7 @@ export default function EmployeesPage() {
 					return;
 				}
 
-				setError("Employees konden niet worden geladen.");
+				setError("Medewerkers konden niet worden geladen.");
 			} finally {
 				setLoading(false);
 			}
@@ -64,9 +81,9 @@ export default function EmployeesPage() {
 
 	return (
 		<ModuleFrame
-			title="Employees"
+			title="Medewerkers"
 			subtitle="Personeelsregister met snelle zoek- en navigatiefunctie."
-			actions={hasPermission(user, "employees.create") ? <Link className="btn link" href="/employees/new">New employee</Link> : undefined}
+			actions={hasPermission(user, "employees.create") ? <Link className="btn link" href="/employees/new">Nieuwe medewerker</Link> : undefined}
 			filters={
 				<div className="filter-row">
 					<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek op naam, nummer of status" />
@@ -82,10 +99,10 @@ export default function EmployeesPage() {
 						<div key={employee.id} className="list-row">
 							<div>
 								<strong>{employee.employee_number}</strong> - {employee.first_name} {employee.last_name}
-								<div className="muted">Status: {employee.status}</div>
+								<div className="muted">Status: {getStatusLabel(employee.status)}</div>
 							</div>
 							<div className="list-row-actions">
-								<Link className="btn secondary link" href={`/employees/${employee.id}`}>Open</Link>
+								<Link className="btn secondary link" href={`/employees/${employee.id}`}>Openen</Link>
 							</div>
 						</div>
 					))}

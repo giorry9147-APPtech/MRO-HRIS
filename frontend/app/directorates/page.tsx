@@ -28,7 +28,7 @@ export default function DirectoratesPage() {
 				const response = await apiFetch<{ data: Array<{ id: number; name: string; code: string | null; status: string }> }>("/directorates");
 				setItems(response.data ?? []);
 			} catch {
-				setError("Directorates konden niet worden geladen.");
+				setError("Directoraten konden niet worden geladen.");
 			}
 		}
 
@@ -57,7 +57,7 @@ export default function DirectoratesPage() {
 			setCode("");
 			setEditingId(null);
 		} catch {
-			setError("Directorate kon niet worden aangemaakt.");
+			setError("Directoraat kon niet worden opgeslagen.");
 		}
 	}
 
@@ -80,12 +80,12 @@ export default function DirectoratesPage() {
 	}
 
 	if (forbidden) {
-		return <main style={{ padding: "1.5rem" }}><p>Je hebt geen rechten om directorates te bekijken.</p></main>;
+		return <main style={{ padding: "1.5rem" }}><p>Je hebt geen rechten om directoraten te bekijken.</p></main>;
 	}
 
 	return (
 		<ModuleFrame
-			title="Directorates"
+			title="Directoraten"
 			subtitle="Beheer directoraten binnen de organisatiestructuur."
 			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek directoraat" /></div>}
 		>
@@ -107,8 +107,8 @@ export default function DirectoratesPage() {
 							<div className="muted">Status: {item.status}</div>
 						</div>
 						<div className="list-row-actions">
-							{canCreate && <button className="btn secondary" type="button" onClick={() => { setEditingId(item.id); setName(item.name); setCode(item.code ?? ""); }}>Edit</button>}
-							{canDelete && <button className="btn secondary" type="button" onClick={() => void handleDelete(item.id)}>Delete</button>}
+							{canCreate && <button className="btn secondary" type="button" onClick={() => { setEditingId(item.id); setName(item.name); setCode(item.code ?? ""); }}>Bewerken</button>}
+							{canDelete && <button className="btn secondary" type="button" onClick={() => void handleDelete(item.id)}>Verwijderen</button>}
 						</div>
 					</div>
 				))}

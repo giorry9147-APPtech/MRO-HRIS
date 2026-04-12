@@ -4,7 +4,7 @@ import AppShell from "@/components/layout/AppShell";
 
 export const metadata: Metadata = {
   title: "MRO-HRIS",
-  description: "MRO Human Resource Information System",
+  description: "MRO Human Resource Informatie Systeem",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+	<html lang="nl">
       <body>
 		<AppShell>{children}</AppShell>
 	  </body>

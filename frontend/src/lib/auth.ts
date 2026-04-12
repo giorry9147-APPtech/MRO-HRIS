@@ -1,5 +1,7 @@
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api").replace(/\/+$/, "");
 const AUTH_TOKEN_KEY = "mro_hris_token";
+let cachedUser: AuthUser | null = null;
+let meRequest: Promise<AuthUser> | null = null;
 
 export type AuthUser = {
 	id: number;
@@ -40,12 +42,18 @@ export function setAuthToken(token: string): void {
 	window.localStorage.setItem(AUTH_TOKEN_KEY, token);
 }
 
+export function setCachedAuthUser(user: AuthUser | null): void {
+	cachedUser = user;
+}
+
 export function clearAuthToken(): void {
 	if (typeof window === "undefined") {
 		return;
 	}
 
 	window.localStorage.removeItem(AUTH_TOKEN_KEY);
+	cachedUser = null;
+	meRequest = null;
 }
 
 export async function login(email: string, password: string): Promise<AuthUser> {
@@ -69,30 +77,48 @@ export async function login(email: string, password: string): Promise<AuthUser> 
 
 	const payload = (await res.json()) as LoginResponse;
 	setAuthToken(payload.token);
+	setCachedAuthUser(payload.user);
 
 	return payload.user;
 }
 
 export async function getMe(): Promise<AuthUser> {
+	if (cachedUser) {
+		return cachedUser;
+	}
+
+	if (meRequest) {
+		return meRequest;
+	}
+
 	const token = getAuthToken();
 
 	if (!token) {
 		throw new Error("Niet ingelogd.");
 	}
 
-	const res = await fetch(`${API_URL}/auth/me`, {
-		headers: {
-			Accept: "application/json",
-			Authorization: `Bearer ${token}`,
-		},
-	});
+	meRequest = (async () => {
+		const res = await fetch(`${API_URL}/auth/me`, {
+			headers: {
+				Accept: "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		});
 
-	if (!res.ok) {
-		throw new Error("Sessie verlopen. Log opnieuw in.");
+		if (!res.ok) {
+			throw new Error("Sessie verlopen. Log opnieuw in.");
+		}
+
+		const payload = (await res.json()) as MeResponse;
+		cachedUser = payload.user;
+		return payload.user;
+	})();
+
+	try {
+		return await meRequest;
+	} finally {
+		meRequest = null;
 	}
-
-	const payload = (await res.json()) as MeResponse;
-	return payload.user;
 }
 
 export async function logout(): Promise<void> {

@@ -30,7 +30,7 @@ export default function LoginPage() {
 	return (
 		<main className="grid" style={{ gap: "1rem", maxWidth: 520, margin: "0 auto" }}>
 			<section className="card">
-				<p className="muted" style={{ marginTop: 0 }}>MRO-HRIS Access</p>
+				<p className="muted" style={{ marginTop: 0 }}>Toegang MRO-HRIS</p>
 				<h1 style={{ marginTop: 0 }}>Inloggen</h1>
 				<p className="muted">Gebruik je account om toegang te krijgen tot het HRIS.</p>
 
@@ -62,7 +62,7 @@ export default function LoginPage() {
 				<p className="muted" style={{ marginBottom: 0 }}>Tip: admin@mro-hris.local / Admin12345</p>
 			</section>
 			<p className="muted" style={{ margin: 0 }}>
-				<Link href="/">Back to home</Link>
+				<Link href="/">Terug naar start</Link>
 			</p>
 		</main>
 	);

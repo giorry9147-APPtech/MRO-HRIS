@@ -14,6 +14,8 @@ class EmploymentRecordResource extends JsonResource
 			'employee_id' => $this->employee_id,
 			'position_id' => $this->position_id,
 			'position_title' => $this->position?->title,
+			'job_function_id' => $this->job_function_id,
+			'job_function_title' => $this->jobFunction?->title ?? $this->position?->jobFunction?->title,
 			'department_id' => $this->position?->department_id,
 			'department_name' => $this->position?->department?->name,
 			'directorate_id' => $this->position?->department?->directorate_id,

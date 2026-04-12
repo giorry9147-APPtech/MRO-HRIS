@@ -21,6 +21,19 @@ export default function PositionsPage() {
 	const canCreate = hasPermission(user, "positions.create");
 	const canDelete = hasPermission(user, "positions.delete");
 
+	function getStatusLabel(status: string) {
+		switch (status) {
+			case "vacant":
+				return "Vacant";
+			case "filled":
+				return "Ingevuld";
+			case "archived":
+				return "Gearchiveerd";
+			default:
+				return status;
+		}
+	}
+
 	useEffect(() => {
 		if (loading || forbidden) {
 			return;
@@ -35,7 +48,7 @@ export default function PositionsPage() {
 				setItems(positionsResponse.data ?? []);
 				setJobFunctions(functionsResponse.data ?? []);
 			} catch {
-				setError("Posities konden niet worden geladen.");
+				setError("Werkposities konden niet worden geladen.");
 			}
 		}
 
@@ -66,7 +79,7 @@ export default function PositionsPage() {
 			setJobFunctionId("");
 			setEditingId(null);
 		} catch {
-			setError("Positie kon niet worden aangemaakt.");
+			setError("Werkpositie kon niet worden opgeslagen.");
 		}
 	}
 
@@ -94,9 +107,9 @@ export default function PositionsPage() {
 
 	return (
 		<ModuleFrame
-			title="Positions"
+			title="Werkposities"
 			subtitle="Beheer formatieplaatsen en functiekoppelingen."
-			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek positie" /></div>}
+			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek werkpositie" /></div>}
 		>
 			{error && <p className="error">{error}</p>}
 
@@ -104,7 +117,7 @@ export default function PositionsPage() {
 				<form onSubmit={handleCreate} className="filter-row">
 					<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Titel" required />
 					<input value={code} onChange={(event) => setCode(event.target.value)} placeholder="Code (optioneel)" />
-					<input value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="Grade (optioneel)" />
+					<input value={grade} onChange={(event) => setGrade(event.target.value)} placeholder="Schaal (optioneel)" />
 					<select value={jobFunctionId} onChange={(event) => setJobFunctionId(event.target.value)}>
 						<option value="">Selecteer functie</option>
 						{jobFunctions.map((jobFunction) => <option key={jobFunction.id} value={jobFunction.id}>{jobFunction.title}</option>)}
@@ -118,11 +131,11 @@ export default function PositionsPage() {
 					<div key={item.id} className="list-row">
 						<div>
 							<strong>{item.title}</strong> ({item.code ?? "-"})
-							<div className="muted">{item.status}{item.job_function_title ? ` | ${item.job_function_title}` : ""}</div>
+							<div className="muted">{getStatusLabel(item.status)}{item.job_function_title ? ` | ${item.job_function_title}` : ""}</div>
 						</div>
 						<div className="list-row-actions">
-							{canCreate && <button className="btn secondary" type="button" onClick={() => { setEditingId(item.id); setTitle(item.title); setCode(item.code ?? ""); setGrade(item.grade ?? ""); setJobFunctionId(item.job_function_id ? String(item.job_function_id) : ""); }}>Edit</button>}
-							{canDelete && <button className="btn secondary" type="button" onClick={() => void handleDelete(item.id)}>Delete</button>}
+							{canCreate && <button className="btn secondary" type="button" onClick={() => { setEditingId(item.id); setTitle(item.title); setCode(item.code ?? ""); setGrade(item.grade ?? ""); setJobFunctionId(item.job_function_id ? String(item.job_function_id) : ""); }}>Bewerken</button>}
+							{canDelete && <button className="btn secondary" type="button" onClick={() => void handleDelete(item.id)}>Verwijderen</button>}
 						</div>
 					</div>
 				))}

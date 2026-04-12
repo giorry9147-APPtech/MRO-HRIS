@@ -21,11 +21,11 @@ const NAV_ITEMS: NavItem[] = [
 	{ href: "/dashboard", label: "Dashboard" },
 	{ href: "/employees", label: "Medewerkers", permission: "employees.view" },
 	{ href: "/functions", label: "Functies", permission: "functions.view" },
-	{ href: "/positions", label: "Posities", permission: "positions.view" },
+	{ href: "/positions", label: "Werkposities", permission: "positions.view" },
 	{ href: "/departments", label: "Afdelingen", permission: "departments.view" },
 	{ href: "/directorates", label: "Directoraten", permission: "directorates.view" },
 	{ href: "/documents", label: "Dossiers", permission: "documents.view" },
-	{ href: "/assets", label: "Assets", permission: "assets.view" },
+	{ href: "/assets", label: "Bedrijfsmiddelen", permission: "assets.view" },
 	{ href: "/reports", label: "Rapporten", permission: "reports.view" },
 ];
 

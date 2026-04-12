@@ -19,7 +19,7 @@ class EmploymentController extends Controller
 	public function index(Request $request)
 	{
 		$records = EmploymentRecord::query()
-			->with('position.department.directorate')
+			->with(['position.department.directorate', 'position.jobFunction', 'jobFunction'])
 			->whereHas('position.department', function ($departmentQuery) use ($request) {
 				$this->userScopeService->applyDepartmentScope($departmentQuery, $request->user());
 			})
@@ -41,7 +41,7 @@ class EmploymentController extends Controller
 		$record = EmploymentRecord::create([
 			...$request->validated(),
 			'status' => $request->input('status', 'active'),
-		])->load('position.department.directorate');
+		])->load(['position.department.directorate', 'position.jobFunction', 'jobFunction']);
 
 		return new EmploymentRecordResource($record);
 	}
@@ -49,7 +49,7 @@ class EmploymentController extends Controller
 	public function update(UpdateEmploymentRecordRequest $request, EmploymentRecord $employmentRecord): EmploymentRecordResource
 	{
 		$employmentRecord->update($request->validated());
-		$employmentRecord->load('position.department.directorate');
+		$employmentRecord->load(['position.department.directorate', 'position.jobFunction', 'jobFunction']);
 
 		return new EmploymentRecordResource($employmentRecord);
 	}

@@ -9,7 +9,7 @@ class PositionService
 {
 	public function list(array $filters = []): LengthAwarePaginator
 	{
-		$query = Position::query()->with(['department', 'jobFunction'])->latest();
+		$query = Position::query()->with(['department.directorate', 'jobFunction'])->latest();
 
 		if (!empty($filters['status'])) {
 			$query->where('status', $filters['status']);
@@ -35,14 +35,14 @@ class PositionService
 
 	public function create(array $data): Position
 	{
-		return Position::create($data)->load(['department', 'jobFunction']);
+		return Position::create($data)->load(['department.directorate', 'jobFunction']);
 	}
 
 	public function update(Position $position, array $data): Position
 	{
 		$position->update($data);
 
-		return $position->refresh()->load(['department', 'jobFunction']);
+		return $position->refresh()->load(['department.directorate', 'jobFunction']);
 	}
 
 	public function delete(Position $position): void

@@ -15,6 +15,7 @@ class UpdateEmploymentRecordRequest extends FormRequest
 	{
 		return [
 			'position_id' => ['nullable', 'exists:positions,id'],
+			'job_function_id' => ['nullable', 'exists:job_functions,id'],
 			'start_date' => ['sometimes', 'date'],
 			'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
 			'employment_type' => ['sometimes', 'string', 'max:50'],
