@@ -305,7 +305,8 @@ export default function EmployeeDetailPage() {
 		}
 
 		void loadProfileData();
-	}, [employeeId, forbidden, loading, loadProfileData]);
+		void loadEmploymentData();
+	}, [employeeId, forbidden, loading, loadProfileData, loadEmploymentData]);
 
 	useEffect(() => {
 		if (loading || forbidden || !employeeId) {
@@ -888,11 +889,10 @@ export default function EmployeeDetailPage() {
 						{records.map((item) => (
 							<div key={item.id} className="list-row">
 								<div>
-									<strong>{item.position_title ?? "Geen werkpositie"}</strong>
-									{item.department_name ? ` - ${item.department_name}` : ""}
-									{item.directorate_name ? ` (${item.directorate_name})` : ""}
-									{item.job_function_title ? ` - Functie: ${item.job_function_title}` : ""}
-									{` - ${getEmploymentTypeLabel(item.employment_type)} - ${item.start_date}`}
+									<strong>{item.directorate_name ?? "Geen directoraat"}</strong>
+									{item.department_name ? ` › ${item.department_name}` : ""}
+									{item.job_function_title ? ` — ${item.job_function_title}` : ""}
+									{` — ${getEmploymentTypeLabel(item.employment_type)} — ${item.start_date}`}
 								</div>
 								<div className="list-row-actions">
 									{canManageEmployment && <button className="btn secondary" type="button" onClick={() => void handleEmploymentDelete(item.id)}>Verwijderen</button>}
@@ -1049,7 +1049,7 @@ export default function EmployeeDetailPage() {
 					<div className="list-grid">
 						{records.map((item) => (
 							<div key={`employment-${item.id}`} className="list-row">
-								<div>Dienstverband bijgewerkt: {item.position_title ?? "Geen werkpositie"} ({item.start_date})</div>
+								<div>Dienstverband: {item.directorate_name ?? "Onbekend"}{item.department_name ? ` › ${item.department_name}` : ""} ({item.start_date})</div>
 							</div>
 						))}
 						{salaryAssignments.map((item) => (
