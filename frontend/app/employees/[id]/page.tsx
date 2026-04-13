@@ -173,7 +173,7 @@ export default function EmployeeDetailPage() {
 
 		loadingSectionsRef.current.add("employment");
 		try {
-			const [recordsResponse, positionsResponse, directoratesResponse, departmentsResponse, jobFunctionsResponse] = await Promise.all([
+			const [recordsResult, positionsResult, directoratesResult, departmentsResult, jobFunctionsResult] = await Promise.allSettled([
 				apiFetch<{ data: Array<{ id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string }> }>(`/employment-records?employee_id=${employeeId}`),
 				apiFetch<{ data: Position[] }>("/positions?per_page=2000"),
 				apiFetch<{ data: Directorate[] }>("/directorates?per_page=2000"),
@@ -181,12 +181,59 @@ export default function EmployeeDetailPage() {
 				apiFetch<{ data: JobFunction[] }>("/job-functions?per_page=2000"),
 			]);
 
-			setRecords(recordsResponse.data ?? []);
-			setPositions(positionsResponse.data ?? []);
-			setDirectorates(directoratesResponse.data ?? []);
-			setDepartments(departmentsResponse.data ?? []);
-			setJobFunctions(jobFunctionsResponse.data ?? []);
+			const recordsData = recordsResult.status === "fulfilled" ? (recordsResult.value.data ?? []) : [];
+			const positionsData = positionsResult.status === "fulfilled" ? (positionsResult.value.data ?? []) : [];
+
+			const departmentsData = departmentsResult.status === "fulfilled"
+				? (departmentsResult.value.data ?? [])
+				: Array.from(
+					new Map(
+						positionsData
+							.filter((position) => position.department_id && position.department_name)
+							.map((position) => [position.department_id as number, {
+								id: position.department_id as number,
+								name: position.department_name as string,
+								directorate_id: position.directorate_id,
+							}]),
+					).values(),
+				);
+
+			const directoratesData = directoratesResult.status === "fulfilled"
+				? (directoratesResult.value.data ?? [])
+				: Array.from(
+					new Map(
+						positionsData
+							.filter((position) => position.directorate_id && position.directorate_name)
+							.map((position) => [position.directorate_id as number, {
+								id: position.directorate_id as number,
+								name: position.directorate_name as string,
+							}]),
+					).values(),
+				);
+
+			const jobFunctionsData = jobFunctionsResult.status === "fulfilled"
+				? (jobFunctionsResult.value.data ?? [])
+				: Array.from(
+					new Map(
+						positionsData
+							.filter((position) => position.job_function_id && position.job_function_title)
+							.map((position) => [position.job_function_id as number, {
+								id: position.job_function_id as number,
+								title: position.job_function_title as string,
+							}]),
+					).values(),
+				);
+
+			setRecords(recordsData);
+			setPositions(positionsData);
+			setDirectorates(directoratesData);
+			setDepartments(departmentsData);
+			setJobFunctions(jobFunctionsData);
 			setLoadedSections((current) => ({ ...current, employment: true }));
+
+			if (positionsData.length === 0) {
+				setError("Werkposities konden niet worden geladen. Controleer rechten voor posities bekijken.");
+			}
 		} catch {
 			setError("Werkgegevens konden niet worden geladen.");
 		} finally {
@@ -733,6 +780,33 @@ export default function EmployeeDetailPage() {
 	const filteredPositions = strictFilteredPositions.length > 0 ? strictFilteredPositions : positions;
 	const hasNoExactPositionMatch = Boolean(directorateId || departmentId || jobFunctionId) && strictFilteredPositions.length === 0;
 
+	function syncPositionSelection(nextDirectorateId: string, nextDepartmentId: string, nextJobFunctionId: string) {
+		const matches = positions.filter((position) => {
+			if (nextDirectorateId && String(position.directorate_id ?? "") !== nextDirectorateId) {
+				return false;
+			}
+
+			if (nextDepartmentId && String(position.department_id ?? "") !== nextDepartmentId) {
+				return false;
+			}
+
+			if (nextJobFunctionId && String(position.job_function_id ?? "") !== nextJobFunctionId) {
+				return false;
+			}
+
+			return true;
+		});
+
+		if (matches.length === 1) {
+			setPositionId(String(matches[0].id));
+			return;
+		}
+
+		if (positionId && matches.some((position) => String(position.id) === positionId)) {
+			return;
+		}
+	}
+
 	function getEmploymentTypeLabel(type: string) {
 		switch (type) {
 			case "permanent":
@@ -849,8 +923,10 @@ export default function EmployeeDetailPage() {
 							<select
 								value={directorateId}
 								onChange={(event) => {
-									setDirectorateId(event.target.value);
+									const nextDirectorateId = event.target.value;
+									setDirectorateId(nextDirectorateId);
 									setDepartmentId("");
+									syncPositionSelection(nextDirectorateId, "", jobFunctionId);
 								}}
 							>
 								<option value="">Selecteer directoraat</option>
@@ -859,7 +935,9 @@ export default function EmployeeDetailPage() {
 							<select
 								value={departmentId}
 								onChange={(event) => {
-									setDepartmentId(event.target.value);
+									const nextDepartmentId = event.target.value;
+									setDepartmentId(nextDepartmentId);
+									syncPositionSelection(directorateId, nextDepartmentId, jobFunctionId);
 								}}
 							>
 								<option value="">Selecteer afdeling</option>
@@ -868,7 +946,9 @@ export default function EmployeeDetailPage() {
 							<select
 								value={jobFunctionId}
 								onChange={(event) => {
-									setJobFunctionId(event.target.value);
+									const nextJobFunctionId = event.target.value;
+									setJobFunctionId(nextJobFunctionId);
+									syncPositionSelection(directorateId, departmentId, nextJobFunctionId);
 								}}
 							>
 								<option value="">Selecteer functie</option>
