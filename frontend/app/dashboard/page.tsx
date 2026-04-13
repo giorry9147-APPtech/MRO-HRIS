@@ -7,94 +7,83 @@ import { useRouter } from "next/navigation";
 import { AuthUser, getMe, hasPermission, logout } from "@/lib/auth";
 
 type DashboardLink = {
+	id: string;
 	href: string;
 	label: string;
-	description: string;
-	badge: string;
+	icon: string;
 	permission: string;
-	tone: string;
 };
 
 const DASHBOARD_LINKS: DashboardLink[] = [
 	{
+		id: "employees",
 		href: "/employees",
 		label: "Medewerkers",
-		description: "Personeelsdossiers en actuele status",
-		badge: "MW",
+		icon: "👥",
 		permission: "employees.view",
-		tone: "teal",
 	},
 	{
+		id: "functions",
 		href: "/functions",
 		label: "Functies",
-		description: "Functieprofielen en structuur",
-		badge: "FN",
+		icon: "💼",
 		permission: "functions.view",
-		tone: "sand",
 	},
 	{
+		id: "positions",
 		href: "/positions",
 		label: "Werkposities",
-		description: "Formatieplaatsen en bezetting",
-		badge: "WP",
+		icon: "🎖️",
 		permission: "positions.view",
-		tone: "slate",
 	},
 	{
+		id: "departments",
 		href: "/departments",
 		label: "Afdelingen",
-		description: "Afdelingsstructuur en koppelingen",
-		badge: "AF",
+		icon: "🗂️",
 		permission: "departments.view",
-		tone: "mist",
 	},
 	{
+		id: "directorates",
 		href: "/directorates",
 		label: "Directoraten",
-		description: "Hoofdstructuur van het ministerie",
-		badge: "DR",
+		icon: "🏛️",
 		permission: "directorates.view",
-		tone: "gold",
 	},
 	{
+		id: "organogram",
 		href: "/organogram",
 		label: "Organogram",
-		description: "Visueel overzicht van de organisatie",
-		badge: "OG",
+		icon: "📊",
 		permission: "directorates.view",
-		tone: "ocean",
 	},
 	{
+		id: "user-scopes",
 		href: "/admin/users",
 		label: "Gebruikersrechten",
-		description: "Toegang en scopes per gebruiker",
-		badge: "GR",
+		icon: "🔑",
 		permission: "users.scope.update",
-		tone: "rose",
 	},
 	{
+		id: "documents",
 		href: "/documents",
 		label: "Documenten",
-		description: "Dossiers, uploads en archief",
-		badge: "DC",
+		icon: "📄",
 		permission: "documents.view",
-		tone: "paper",
 	},
 	{
+		id: "assets",
 		href: "/assets",
 		label: "Bedrijfsmiddelen",
-		description: "Uitgifte en beheer van assets",
-		badge: "BM",
+		icon: "🧰",
 		permission: "assets.view",
-		tone: "steel",
 	},
 	{
+		id: "reports",
 		href: "/reports",
 		label: "Rapporten",
-		description: "Managementoverzichten en analyses",
-		badge: "RP",
+		icon: "📈",
 		permission: "reports.view",
-		tone: "stone",
 	},
 ];
 
@@ -122,9 +111,22 @@ export default function DashboardPage() {
 		router.replace("/login");
 	}
 
-	const visibleLinks = user
-		? DASHBOARD_LINKS.filter((item) => hasPermission(user, item.permission))
-		: [];
+	const visibleLinks = user ? DASHBOARD_LINKS.filter((item) => hasPermission(user, item.permission)) : [];
+	const visibleMap = new Map(visibleLinks.map((item) => [item.id, item]));
+
+	const orderedTiles = [
+		visibleMap.get("employees"),
+		visibleMap.get("functions"),
+		visibleMap.get("positions"),
+		visibleMap.get("departments"),
+		visibleMap.get("directorates"),
+		visibleMap.get("organogram"),
+		visibleMap.get("user-scopes"),
+		visibleMap.get("documents"),
+		visibleMap.get("assets"),
+		{ id: "logout", href: "#", label: "Uitloggen", icon: "📩", permission: "" },
+		visibleMap.get("reports"),
+	].filter(Boolean) as DashboardLink[];
 
 	return (
 		<main className="dashboard-page">
@@ -146,28 +148,16 @@ export default function DashboardPage() {
 						<p className="dashboard-kicker">Ministerie van Regionale Ontwikkeling en Sport</p>
 						<h1>Human Resource Informatie Systeem</h1>
 						<div className="dashboard-title-rule" />
-						<p className="dashboard-subtitle">Centraal platform voor personeelsbeheer, dossiers, werkstructuur en rapportage.</p>
+						<p className="dashboard-subtitle">Ministerie van Regionale Ontwikkeling en Sport</p>
 
 						{error && <p className="error">{error}</p>}
-
-						<div className="dashboard-meta-row">
-							<div className="dashboard-meta-card">
-								<span className="dashboard-meta-label">Minister</span>
-								<strong>Miquella Huur BSc.</strong>
-							</div>
-							<div className="dashboard-meta-card">
-								<span className="dashboard-meta-label">Omgeving</span>
-								<strong>MRO-HRIS Productieportaal</strong>
-							</div>
-						</div>
+						<p className="dashboard-minister">Minister: Miquella Huur BSc.</p>
 
 						{user && (
-							<div className="dashboard-welcome-bar">
+							<div className="dashboard-welcome-bar simple">
 								<div>
-									<p className="dashboard-welcome-title">Welkom, {user.name}</p>
-									<p className="muted">{user.email}</p>
+									<p className="dashboard-welcome-title">Welkom, {user.name} <span className="muted">({user.email})</span></p>
 								</div>
-								<div className="dashboard-role-pill">{(user.roles ?? []).map((role) => role.name).join(", ") || "Geen rollen"}</div>
 							</div>
 						)}
 					</div>
@@ -190,28 +180,32 @@ export default function DashboardPage() {
 			{user && (
 				<section className="card dashboard-navigation-card">
 					<div className="dashboard-section-head">
-						<div>
-							<p className="dashboard-section-kicker">Snelle toegang</p>
-							<h2>Navigatie</h2>
-						</div>
-						<button className="btn secondary" type="button" onClick={handleLogout}>Uitloggen</button>
+						<h2>Navigatie</h2>
 					</div>
 
 					<div className="dashboard-nav-grid">
-						{visibleLinks.map((item) => (
-							<Link key={item.href} className={`dashboard-nav-tile tone-${item.tone}`} href={item.href}>
-								<span className="dashboard-nav-badge">{item.badge}</span>
-								<span className="dashboard-nav-text">
-									<strong>{item.label}</strong>
-									<small>{item.description}</small>
-								</span>
-								<span className="dashboard-nav-arrow">›</span>
-							</Link>
+						{orderedTiles.map((item) => (
+							item.id === "logout" ? (
+								<button key="logout" className="dashboard-nav-tile" type="button" onClick={handleLogout}>
+									<span className="dashboard-nav-icon">{item.icon}</span>
+									<span className="dashboard-nav-label">{item.label}</span>
+								</button>
+							) : (
+								<Link key={item.href} className="dashboard-nav-tile" href={item.href}>
+									<span className="dashboard-nav-icon">{item.icon}</span>
+									<span className="dashboard-nav-label">{item.label}</span>
+									<span className="dashboard-nav-arrow">›</span>
+								</Link>
+							)
 						))}
 					</div>
 
+					<p style={{ marginTop: "0.35rem", marginBottom: 0 }}>
+						<button className="btn secondary" type="button" onClick={handleLogout}>Uitloggen</button>
+					</p>
+
 					<div className="dashboard-footer-note">
-						<p>Snelle acties: nieuwe medewerker registreren, document uploaden, bedrijfsmiddelen toewijzen en managementrapporten openen.</p>
+						<p>Snelle acties: nieuwe medewerker, document uploaden, asset toewijzen, rapport bekijken.</p>
 					</div>
 				</section>
 			)}
