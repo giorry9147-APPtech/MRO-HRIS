@@ -21,7 +21,6 @@ const NAV_ITEMS: NavItem[] = [
 	{ href: "/dashboard", label: "Dashboard" },
 	{ href: "/employees", label: "Medewerkers", permission: "employees.view" },
 	{ href: "/functions", label: "Functies", permission: "functions.view" },
-	{ href: "/positions", label: "Werkposities", permission: "positions.view" },
 	{ href: "/departments", label: "Afdelingen", permission: "departments.view" },
 	{ href: "/directorates", label: "Directoraten", permission: "directorates.view" },
 	{ href: "/organogram", label: "Organogram", permission: "directorates.view" },
