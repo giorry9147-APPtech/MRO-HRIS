@@ -18,7 +18,7 @@ class PositionController extends Controller
 
 	public function index(Request $request)
 	{
-		$positions = $this->positionService->list($request->only(['status', 'q', 'per_page']));
+		$positions = $this->positionService->list($request->only(['status', 'q', 'per_page', 'department_id', 'directorate_id', 'job_function_id']));
 
 		return PositionResource::collection($positions);
 	}

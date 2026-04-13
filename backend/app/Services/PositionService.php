@@ -11,6 +11,20 @@ class PositionService
 	{
 		$query = Position::query()->with(['department.directorate', 'jobFunction'])->latest();
 
+		if (!empty($filters['directorate_id'])) {
+			$query->whereHas('department', function ($departmentQuery) use ($filters) {
+				$departmentQuery->where('directorate_id', (int) $filters['directorate_id']);
+			});
+		}
+
+		if (!empty($filters['department_id'])) {
+			$query->where('department_id', (int) $filters['department_id']);
+		}
+
+		if (!empty($filters['job_function_id'])) {
+			$query->where('job_function_id', (int) $filters['job_function_id']);
+		}
+
 		if (!empty($filters['status'])) {
 			$query->where('status', $filters['status']);
 		}
