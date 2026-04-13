@@ -433,26 +433,36 @@ textarea:focus {
 .dashboard-kpi-row {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 0.55rem;
-	margin-top: 0.1rem;
+	gap: 0.6rem;
+	margin-top: 0.2rem;
 }
 
 .dashboard-kpi-card {
 	border: 1px solid rgba(209, 199, 182, 0.95);
-	border-radius: 10px;
-	padding: 0.5rem 0.62rem;
-	background: rgba(255, 255, 255, 0.8);
+	border-radius: 12px;
+	padding: 0.66rem 0.82rem;
+	background: #fff;
 	display: grid;
-	gap: 0.12rem;
+	gap: 0.16rem;
+	min-height: 74px;
+	box-shadow: 0 4px 12px rgba(68, 54, 30, 0.05);
+	transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.dashboard-kpi-card:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 8px 18px rgba(68, 54, 30, 0.08);
+	border-color: rgba(177, 133, 52, 0.4);
 }
 
 .dashboard-kpi-card span {
-	font-size: 0.78rem;
+	font-size: 0.8rem;
 	color: #7b6b57;
+	font-weight: 500;
 }
 
 .dashboard-kpi-card strong {
-	font-size: 1.1rem;
+	font-size: 1.22rem;
 	line-height: 1.1;
 	color: #233241;
 }
