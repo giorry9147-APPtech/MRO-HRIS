@@ -438,6 +438,7 @@ export default function EmployeeDetailPage() {
 
 	async function handleEmploymentCreate(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		setError(null);
 
 		const resolvedPositionId = positionId
 			? Number(positionId)
@@ -445,8 +446,8 @@ export default function EmployeeDetailPage() {
 				? filteredPositions[0].id
 				: null;
 
-		if ((directorateId || departmentId || jobFunctionId) && !resolvedPositionId) {
-			setError("Geen passende werkpositie gevonden voor deze selectie. Kies eerst een werkpositie of maak er een aan.");
+		if (!resolvedPositionId) {
+			setError("Selecteer een werkpositie om afdeling en directoraat correct te koppelen.");
 			return;
 		}
 
@@ -713,7 +714,7 @@ export default function EmployeeDetailPage() {
 		? departments.filter((department) => String(department.directorate_id ?? "") === directorateId)
 		: departments;
 
-	const filteredPositions = positions.filter((position) => {
+	const strictFilteredPositions = positions.filter((position) => {
 		if (directorateId && String(position.directorate_id ?? "") !== directorateId) {
 			return false;
 		}
@@ -728,6 +729,9 @@ export default function EmployeeDetailPage() {
 
 		return true;
 	});
+
+	const filteredPositions = strictFilteredPositions.length > 0 ? strictFilteredPositions : positions;
+	const hasNoExactPositionMatch = Boolean(directorateId || departmentId || jobFunctionId) && strictFilteredPositions.length === 0;
 
 	function getEmploymentTypeLabel(type: string) {
 		switch (type) {
@@ -847,7 +851,6 @@ export default function EmployeeDetailPage() {
 								onChange={(event) => {
 									setDirectorateId(event.target.value);
 									setDepartmentId("");
-									setPositionId("");
 								}}
 							>
 								<option value="">Selecteer directoraat</option>
@@ -857,7 +860,6 @@ export default function EmployeeDetailPage() {
 								value={departmentId}
 								onChange={(event) => {
 									setDepartmentId(event.target.value);
-									setPositionId("");
 								}}
 							>
 								<option value="">Selecteer afdeling</option>
@@ -867,16 +869,20 @@ export default function EmployeeDetailPage() {
 								value={jobFunctionId}
 								onChange={(event) => {
 									setJobFunctionId(event.target.value);
-									setPositionId("");
 								}}
 							>
 								<option value="">Selecteer functie</option>
 								{jobFunctions.map((jobFunction) => <option key={jobFunction.id} value={jobFunction.id}>{jobFunction.title}</option>)}
 							</select>
-							<select value={positionId} onChange={(event) => setPositionId(event.target.value)}>
+							<select value={positionId} onChange={(event) => setPositionId(event.target.value)} required>
 								<option value="">Selecteer werkpositie</option>
 								{filteredPositions.map((position) => <option key={position.id} value={position.id}>{position.title}{position.department_name ? ` - ${position.department_name}` : ""}</option>)}
 							</select>
+							{hasNoExactPositionMatch && (
+								<p className="muted" style={{ margin: 0 }}>
+									Geen exacte werkpositie gevonden op deze filters. Alle werkposities worden getoond zodat je toch kunt kiezen.
+								</p>
+							)}
 							<input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required />
 							<select value={employmentType} onChange={(event) => setEmploymentType(event.target.value)}>
 								<option value="permanent">Vaste dienst</option>
