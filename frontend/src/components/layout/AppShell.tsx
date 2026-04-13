@@ -24,7 +24,9 @@ const NAV_ITEMS: NavItem[] = [
 	{ href: "/positions", label: "Werkposities", permission: "positions.view" },
 	{ href: "/departments", label: "Afdelingen", permission: "departments.view" },
 	{ href: "/directorates", label: "Directoraten", permission: "directorates.view" },
-	{ href: "/documents", label: "Dossiers", permission: "documents.view" },
+	{ href: "/organogram", label: "Organogram", permission: "directorates.view" },
+	{ href: "/admin/users", label: "Gebruikersrechten", permission: "users.scope.update" },
+	{ href: "/documents", label: "Documenten", permission: "documents.view" },
 	{ href: "/assets", label: "Bedrijfsmiddelen", permission: "assets.view" },
 	{ href: "/reports", label: "Rapporten", permission: "reports.view" },
 ];
@@ -101,6 +103,11 @@ export default function AppShell({ children }: AppShellProps) {
 						</Link>
 					))}
 				</nav>
+				<div className="workspace-sidebar-footer">
+					<button type="button" className="btn secondary" onClick={() => void handleLogout()}>
+						Uitloggen
+					</button>
+				</div>
 			</aside>
 			<div className="workspace-content">
 				{showWorkspaceHeader && (

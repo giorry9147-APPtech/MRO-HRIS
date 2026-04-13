@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
 import { AuthUser, getMe, hasPermission, logout } from "@/lib/auth";
 
 type DashboardLink = {
@@ -91,12 +92,35 @@ export default function DashboardPage() {
 	const router = useRouter();
 	const [user, setUser] = useState<AuthUser | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [kpis, setKpis] = useState<{
+		employees: number | null;
+		directorates: number | null;
+		departments: number | null;
+		functions: number | null;
+	}>({
+		employees: null,
+		directorates: null,
+		departments: null,
+		functions: null,
+	});
 
 	useEffect(() => {
 		async function loadCurrentUser() {
 			try {
 				const currentUser = await getMe();
 				setUser(currentUser);
+
+				const [summaryResponse, functionsResponse] = await Promise.all([
+					apiFetch<{ data: { employees: number; directorates: number; departments: number } }>("/reports/summary"),
+					apiFetch<{ data: Array<{ id: number }> }>("/job-functions?per_page=2000"),
+				]);
+
+				setKpis({
+					employees: summaryResponse.data?.employees ?? 0,
+					directorates: summaryResponse.data?.directorates ?? 0,
+					departments: summaryResponse.data?.departments ?? 0,
+					functions: (functionsResponse.data ?? []).length,
+				});
 			} catch {
 				setError("Je sessie is ongeldig. Log opnieuw in.");
 				router.replace("/login");
@@ -162,6 +186,25 @@ export default function DashboardPage() {
 								</div>
 							</div>
 						)}
+
+						<div className="dashboard-kpi-row">
+							<div className="dashboard-kpi-card">
+								<span>Medewerkers</span>
+								<strong>{kpis.employees ?? "-"}</strong>
+							</div>
+							<div className="dashboard-kpi-card">
+								<span>Directoraten</span>
+								<strong>{kpis.directorates ?? "-"}</strong>
+							</div>
+							<div className="dashboard-kpi-card">
+								<span>Afdelingen</span>
+								<strong>{kpis.departments ?? "-"}</strong>
+							</div>
+							<div className="dashboard-kpi-card">
+								<span>Functies</span>
+								<strong>{kpis.functions ?? "-"}</strong>
+							</div>
+						</div>
 					</div>
 				</div>
 
