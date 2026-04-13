@@ -1,0 +1,10 @@
+<svg width="1600" height="700" viewBox="0 0 1600 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="700" fill="#EDE4D2"/>
+  <rect x="30" y="30" width="1540" height="640" rx="40" stroke="#D7C39A" stroke-width="3" stroke-dasharray="14 14"/>
+  <path d="M0 490C120 470 190 520 300 500C410 480 520 410 640 430C760 450 860 545 980 540C1100 535 1220 410 1360 425C1480 438 1540 500 1600 520V700H0V490Z" fill="#AFC6D1"/>
+  <path d="M0 560C150 525 260 620 430 585C570 556 660 460 795 468C965 478 1040 610 1185 604C1340 598 1452 503 1600 538V700H0V560Z" fill="#8FAFBE" opacity="0.9"/>
+  <path d="M0 612C153 608 242 668 365 657C490 646 595 575 715 582C854 589 914 659 1047 664C1227 671 1380 607 1600 624V700H0V612Z" fill="#708FA2" opacity="0.78"/>
+  <rect x="116" y="120" width="520" height="76" rx="38" fill="#FFF8EB" fill-opacity="0.88"/>
+  <text x="376" y="168" text-anchor="middle" fill="#7E663D" font-family="Arial, sans-serif" font-size="34" font-weight="700">Upload hier uw headerafbeelding</text>
+  <text x="376" y="224" text-anchor="middle" fill="#987F56" font-family="Arial, sans-serif" font-size="22">Vervang dit SVG-bestand in /public/dashboard</text>
+</svg>

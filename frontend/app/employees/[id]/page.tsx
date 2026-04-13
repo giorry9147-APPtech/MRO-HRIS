@@ -162,8 +162,12 @@ export default function EmployeeDetailPage() {
 		}
 	}, [employeeId, loadedSections.profile]);
 
-	const loadEmploymentData = useCallback(async () => {
-		if (!employeeId || loadedSections.employment || loadingSectionsRef.current.has("employment")) {
+	const loadEmploymentData = useCallback(async (force = false) => {
+		if (!employeeId || loadingSectionsRef.current.has("employment")) {
+			return;
+		}
+
+		if (!force && loadedSections.employment) {
 			return;
 		}
 
@@ -171,10 +175,10 @@ export default function EmployeeDetailPage() {
 		try {
 			const [recordsResponse, positionsResponse, directoratesResponse, departmentsResponse, jobFunctionsResponse] = await Promise.all([
 				apiFetch<{ data: Array<{ id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string }> }>(`/employment-records?employee_id=${employeeId}`),
-				apiFetch<{ data: Position[] }>("/positions?per_page=500"),
-				apiFetch<{ data: Directorate[] }>("/directorates?per_page=200"),
-				apiFetch<{ data: Department[] }>("/departments?per_page=500"),
-				apiFetch<{ data: JobFunction[] }>("/job-functions?per_page=500"),
+				apiFetch<{ data: Position[] }>("/positions?per_page=2000"),
+				apiFetch<{ data: Directorate[] }>("/directorates?per_page=2000"),
+				apiFetch<{ data: Department[] }>("/departments?per_page=2000"),
+				apiFetch<{ data: JobFunction[] }>("/job-functions?per_page=2000"),
 			]);
 
 			setRecords(recordsResponse.data ?? []);
@@ -299,7 +303,7 @@ export default function EmployeeDetailPage() {
 		}
 
 		if (activeTab === "employment") {
-			void loadEmploymentData();
+			void loadEmploymentData(true);
 			return;
 		}
 
@@ -822,6 +826,9 @@ export default function EmployeeDetailPage() {
 			{activeTab === "employment" && (
 				<section className="grid">
 					<h2 style={{ marginTop: 0 }}>Werkgegevens en dienstverbanden</h2>
+					<div className="list-row" style={{ justifyContent: "flex-end" }}>
+						<button className="btn secondary" type="button" onClick={() => void loadEmploymentData(true)}>Lijsten verversen</button>
+					</div>
 					{canManageEmployment && (
 						<form onSubmit={handleEmploymentCreate} className="filter-row">
 							<select

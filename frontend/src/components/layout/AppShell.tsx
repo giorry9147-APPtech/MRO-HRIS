@@ -36,6 +36,7 @@ export default function AppShell({ children }: AppShellProps) {
 	const [checkingSession, setCheckingSession] = useState(true);
 
 	const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+	const showWorkspaceHeader = pathname !== "/dashboard";
 
 	useEffect(() => {
 		if (isPublicRoute) {
@@ -102,15 +103,17 @@ export default function AppShell({ children }: AppShellProps) {
 				</nav>
 			</aside>
 			<div className="workspace-content">
-				<header className="workspace-header card">
-					<div>
-						<p className="muted" style={{ margin: 0 }}>Ingelogd als</p>
-						<strong>{user?.name ?? "Gebruiker"}</strong>
-					</div>
-					<button type="button" className="btn secondary" onClick={() => void handleLogout()}>
-						Uitloggen
-					</button>
-				</header>
+				{showWorkspaceHeader && (
+					<header className="workspace-header card">
+						<div>
+							<p className="muted" style={{ margin: 0 }}>Ingelogd als</p>
+							<strong>{user?.name ?? "Gebruiker"}</strong>
+						</div>
+						<button type="button" className="btn secondary" onClick={() => void handleLogout()}>
+							Uitloggen
+						</button>
+					</header>
+				)}
 				<main className="workspace-main">{children}</main>
 			</div>
 		</div>

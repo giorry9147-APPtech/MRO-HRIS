@@ -1,0 +1,10 @@
+<svg width="420" height="420" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="420" height="420" rx="40" fill="#FAF5EA"/>
+  <rect x="18" y="18" width="384" height="384" rx="28" stroke="#D7C39A" stroke-width="2" stroke-dasharray="10 10"/>
+  <circle cx="210" cy="170" r="82" fill="#F2E6CB" stroke="#B58A3A" stroke-width="4"/>
+  <path d="M210 110L224 145H262L231 167L243 203L210 181L177 203L189 167L158 145H196L210 110Z" fill="#B58A3A" opacity="0.88"/>
+  <rect x="128" y="252" width="164" height="20" rx="10" fill="#D5BF95"/>
+  <rect x="112" y="286" width="196" height="20" rx="10" fill="#E5D7BA"/>
+  <text x="210" y="340" text-anchor="middle" fill="#7F673F" font-family="Arial, sans-serif" font-size="22" font-weight="700">Upload hier uw embleem</text>
+  <text x="210" y="372" text-anchor="middle" fill="#9E8760" font-family="Arial, sans-serif" font-size="16">Vervang dit SVG-bestand in /public/dashboard</text>
+</svg>

@@ -34,6 +34,7 @@ export default function NewEmployeePage() {
 	const [salaryCurrency, setSalaryCurrency] = useState("SRD");
 	const [salaryStartDate, setSalaryStartDate] = useState("");
 	const [error, setError] = useState<string | null>(null);
+	const [refreshOptionsKey, setRefreshOptionsKey] = useState(0);
 
 	useEffect(() => {
 		if (loading || forbidden) {
@@ -42,11 +43,12 @@ export default function NewEmployeePage() {
 
 		async function loadFormOptions() {
 			try {
+				setError(null);
 				const [directorateResponse, departmentResponse, jobFunctionResponse, positionResponse] = await Promise.all([
-					apiFetch<{ data: Directorate[] }>("/directorates?per_page=200"),
-					apiFetch<{ data: Department[] }>("/departments?per_page=500"),
-					apiFetch<{ data: JobFunction[] }>("/job-functions?per_page=500"),
-					apiFetch<{ data: Position[] }>("/positions?per_page=500"),
+					apiFetch<{ data: Directorate[] }>("/directorates?per_page=2000"),
+					apiFetch<{ data: Department[] }>("/departments?per_page=2000"),
+					apiFetch<{ data: JobFunction[] }>("/job-functions?per_page=2000"),
+					apiFetch<{ data: Position[] }>("/positions?per_page=2000"),
 				]);
 
 				setDirectorates(directorateResponse.data ?? []);
@@ -59,7 +61,7 @@ export default function NewEmployeePage() {
 		}
 
 		void loadFormOptions();
-	}, [forbidden, loading]);
+	}, [forbidden, loading, refreshOptionsKey]);
 
 	const filteredDepartments = useMemo(() => {
 		if (!selectedDirectorateId) {
@@ -170,6 +172,9 @@ export default function NewEmployeePage() {
 
 			<section className="card" style={{ marginTop: "1rem", maxWidth: "700px" }}>
 				<h2 style={{ marginTop: 0 }}>Werkgegevens koppelen</h2>
+				<p style={{ marginTop: 0 }}>
+					<button className="btn secondary" type="button" onClick={() => setRefreshOptionsKey((current) => current + 1)}>Lijsten verversen</button>
+				</p>
 				<p className="muted" style={{ marginTop: 0 }}>Deze velden worden direct na het aanmaken gekoppeld als huidige werkgegevens.</p>
 				<div className="grid" style={{ gap: "0.75rem" }}>
 					<label htmlFor="directorate-select">Directoraat</label>
