@@ -128,6 +128,8 @@ export default function DashboardPage() {
 		visibleMap.get("reports"),
 	].filter(Boolean) as DashboardLink[];
 
+	const featuredTileId = orderedTiles.find((item) => item.id !== "logout")?.id;
+
 	return (
 		<main className="dashboard-page">
 			<section className="card dashboard-hero-card">
@@ -191,10 +193,10 @@ export default function DashboardPage() {
 									<span className="dashboard-nav-label">{item.label}</span>
 								</button>
 							) : (
-								<Link key={item.href} className="dashboard-nav-tile" href={item.href}>
+								<Link key={item.href} className={`dashboard-nav-tile${item.id === featuredTileId ? " featured" : ""}`} href={item.href}>
 									<span className="dashboard-nav-icon">{item.icon}</span>
 									<span className="dashboard-nav-label">{item.label}</span>
-									<span className="dashboard-nav-arrow">›</span>
+									{item.id === featuredTileId ? <span className="dashboard-nav-arrow">›</span> : null}
 								</Link>
 							)
 						))}
