@@ -16,7 +16,7 @@ class StoreDepartmentRequest extends FormRequest
 		return [
 			'directorate_id' => ['nullable', 'exists:directorates,id'],
 			'parent_department_id' => ['nullable', 'exists:departments,id'],
-			'name' => ['required', 'string', 'max:120', 'unique:departments,name'],
+			'name' => ['required', 'string', 'max:120'],
 			'code' => ['nullable', 'string', 'max:50', 'unique:departments,code'],
 			'status' => ['sometimes', 'in:active,inactive'],
 		];

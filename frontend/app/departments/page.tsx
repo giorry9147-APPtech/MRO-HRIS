@@ -8,7 +8,7 @@ import ModuleFrame from "@/components/ui/ModuleFrame";
 
 export default function DepartmentsPage() {
 	const { user, loading, forbidden } = useAuthGuard("departments.view");
-	const [items, setItems] = useState<Array<{ id: number; name: string; code: string | null; status: string; directorate_name?: string }>>([]);
+	const [items, setItems] = useState<Array<{ id: number; name: string; code: string | null; status: string; directorate_id?: number | null; directorate_name?: string }>>([]);
 	const [directorates, setDirectorates] = useState<Array<{ id: number; name: string }>>([]);
 	const [editingId, setEditingId] = useState<number | null>(null);
 	const [name, setName] = useState("");
@@ -28,8 +28,8 @@ export default function DepartmentsPage() {
 		async function loadData() {
 			try {
 				const [departmentResponse, directorateResponse] = await Promise.all([
-					apiFetch<{ data: Array<{ id: number; name: string; code: string | null; status: string; directorate_id?: number | null; directorate_name?: string }> }>("/departments?per_page=500"),
-					apiFetch<{ data: Array<{ id: number; name: string }> }>("/directorates?per_page=200"),
+					apiFetch<{ data: Array<{ id: number; name: string; code: string | null; status: string; directorate_id?: number | null; directorate_name?: string }> }>("/departments?per_page=2000"),
+					apiFetch<{ data: Array<{ id: number; name: string }> }>("/directorates?per_page=2000"),
 				]);
 				setItems(departmentResponse.data ?? []);
 				setDirectorates(directorateResponse.data ?? []);
