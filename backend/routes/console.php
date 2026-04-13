@@ -2,6 +2,7 @@
 
 use App\Models\Asset;
 use App\Models\AssetAssignment;
+use App\Models\Department;
 use App\Models\Employee;
 use App\Models\EmployeeDocument;
 use App\Models\EmploymentRecord;
@@ -28,13 +29,15 @@ Artisan::command('app:e2e-employee-dossier {--cleanup : Remove created employee 
     $createdAsset = false;
 
     $start = $mark();
-    $position = Position::query()->first();
-    $timings['position_lookup_ms'] = (int) round(($mark() - $start) * 1000);
+    $department = Department::query()->whereNotNull('directorate_id')->first();
+    $timings['department_lookup_ms'] = (int) round(($mark() - $start) * 1000);
 
-    if (!$position) {
-        $this->error('Geen werkpositie gevonden. Maak eerst minimaal 1 werkpositie aan.');
+    if (!$department) {
+        $this->error('Geen afdeling met directoraat gevonden. Maak eerst minimaal 1 afdeling aan.');
         return self::FAILURE;
     }
+
+    $position = Position::query()->where('department_id', $department->id)->first();
 
     $employeeNumber = 'E2E-' . now()->format('YmdHis');
     $photoPath = 'employee-photos/' . $employeeNumber . '.jpg';
@@ -61,13 +64,17 @@ Artisan::command('app:e2e-employee-dossier {--cleanup : Remove created employee 
     $start = $mark();
     $employmentPayload = [
         'employee_id' => $employee->id,
-        'position_id' => $position->id,
+        'directorate_id' => $department->directorate_id,
+        'department_id' => $department->id,
         'start_date' => now()->toDateString(),
         'employment_type' => 'permanent',
         'status' => 'active',
     ];
+    if ($position) {
+        $employmentPayload['position_id'] = $position->id;
+    }
     if (Schema::hasColumn('employment_records', 'job_function_id')) {
-        $employmentPayload['job_function_id'] = $position->job_function_id;
+        $employmentPayload['job_function_id'] = $position?->job_function_id;
     }
     $employment = EmploymentRecord::create($employmentPayload);
     $timings['employment_create_ms'] = (int) round(($mark() - $start) * 1000);
@@ -116,7 +123,7 @@ Artisan::command('app:e2e-employee-dossier {--cleanup : Remove created employee 
 
     $this->info('E2E personeelsdossier aangemaakt.');
     $this->line('Medewerker ID: ' . $employee->id . ' (' . $employeeNumber . ')');
-    $this->line('Employment ID: ' . $employment->id . ' / Position ID: ' . $position->id);
+    $this->line('Employment ID: ' . $employment->id . ' / Position ID: ' . ($position?->id ?? 'geen'));
     $this->line('Document ID: ' . $document->id . ' / Asset assignment ID: ' . $assignment->id);
     $this->newLine();
     $this->line('Timings (ms):');

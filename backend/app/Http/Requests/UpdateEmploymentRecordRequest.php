@@ -14,6 +14,8 @@ class UpdateEmploymentRecordRequest extends FormRequest
 	public function rules(): array
 	{
 		return [
+			'directorate_id' => ['nullable', 'exists:directorates,id'],
+			'department_id' => ['nullable', 'exists:departments,id'],
 			'position_id' => ['nullable', 'exists:positions,id'],
 			'job_function_id' => ['nullable', 'exists:job_functions,id'],
 			'start_date' => ['sometimes', 'date'],

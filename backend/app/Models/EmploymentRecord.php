@@ -12,6 +12,8 @@ class EmploymentRecord extends Model
 
 	protected $fillable = [
 		'employee_id',
+		'directorate_id',
+		'department_id',
 		'position_id',
 		'job_function_id',
 		'start_date',
@@ -34,6 +36,16 @@ class EmploymentRecord extends Model
 	public function position(): BelongsTo
 	{
 		return $this->belongsTo(Position::class);
+	}
+
+	public function directorate(): BelongsTo
+	{
+		return $this->belongsTo(Directorate::class);
+	}
+
+	public function department(): BelongsTo
+	{
+		return $this->belongsTo(Department::class);
 	}
 
 	public function jobFunction(): BelongsTo

@@ -9,6 +9,11 @@ class EmploymentRecordResource extends JsonResource
 {
 	public function toArray(Request $request): array
 	{
+		$departmentId = $this->department_id ?? $this->position?->department_id;
+		$departmentName = $this->department?->name ?? $this->position?->department?->name;
+		$directorateId = $this->directorate_id ?? $this->department?->directorate_id ?? $this->position?->department?->directorate_id;
+		$directorateName = $this->directorate?->name ?? $this->department?->directorate?->name ?? $this->position?->department?->directorate?->name;
+
 		return [
 			'id' => $this->id,
 			'employee_id' => $this->employee_id,
@@ -16,10 +21,10 @@ class EmploymentRecordResource extends JsonResource
 			'position_title' => $this->position?->title,
 			'job_function_id' => $this->job_function_id,
 			'job_function_title' => $this->jobFunction?->title ?? $this->position?->jobFunction?->title,
-			'department_id' => $this->position?->department_id,
-			'department_name' => $this->position?->department?->name,
-			'directorate_id' => $this->position?->department?->directorate_id,
-			'directorate_name' => $this->position?->department?->directorate?->name,
+			'department_id' => $departmentId,
+			'department_name' => $departmentName,
+			'directorate_id' => $directorateId,
+			'directorate_name' => $directorateName,
 			'start_date' => $this->start_date?->toDateString(),
 			'end_date' => $this->end_date?->toDateString(),
 			'employment_type' => $this->employment_type,

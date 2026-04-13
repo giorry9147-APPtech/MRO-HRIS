@@ -22,16 +22,6 @@ type Employee = {
 	status: string;
 };
 
-type Position = {
-	id: number;
-	title: string;
-	department_id: number | null;
-	department_name: string | null;
-	directorate_id: number | null;
-	directorate_name: string | null;
-	job_function_id: number | null;
-	job_function_title: string | null;
-};
 type Directorate = { id: number; name: string };
 type Department = { id: number; name: string; directorate_id: number | null };
 type JobFunction = { id: number; title: string };
@@ -71,19 +61,16 @@ export default function EmployeeDetailPage() {
 	const [salaryAssignments, setSalaryAssignments] = useState<Array<{ id: number; amount: string; currency: string; start_date: string; end_date: string | null; status: string }>>([]);
 	const [qualifications, setQualifications] = useState<Qualification[]>([]);
 	const [workExperiences, setWorkExperiences] = useState<WorkExperience[]>([]);
-	const [positions, setPositions] = useState<Position[]>([]);
 	const [directorates, setDirectorates] = useState<Directorate[]>([]);
 	const [departments, setDepartments] = useState<Department[]>([]);
 	const [jobFunctions, setJobFunctions] = useState<JobFunction[]>([]);
 	const [departmentsLoading, setDepartmentsLoading] = useState(false);
-	const [positionsLoading, setPositionsLoading] = useState(false);
 	const [assets, setAssets] = useState<Asset[]>([]);
 	const [error, setError] = useState<string | null>(null);
 	const [savingEmployee, setSavingEmployee] = useState(false);
 	const [documentTitle, setDocumentTitle] = useState("");
 	const [documentType, setDocumentType] = useState("");
 	const [documentFile, setDocumentFile] = useState<File | null>(null);
-	const [positionId, setPositionId] = useState("");
 	const [directorateId, setDirectorateId] = useState("");
 	const [departmentId, setDepartmentId] = useState("");
 	const [jobFunctionId, setJobFunctionId] = useState("");
@@ -194,7 +181,6 @@ export default function EmployeeDetailPage() {
 			setRecords(recordsData);
 			setDirectorates(directoratesData);
 			setDepartments([]);
-			setPositions([]);
 			setJobFunctions(jobFunctionsData);
 			setLoadedSections((current) => ({ ...current, employment: true }));
 		} catch {
@@ -220,33 +206,6 @@ export default function EmployeeDetailPage() {
 			setDepartments([]);
 		} finally {
 			setDepartmentsLoading(false);
-		}
-	}, [employeeId]);
-
-	const loadPositionsBySelection = useCallback(async (selectedDirectorateId: string, selectedDepartmentId: string, selectedJobFunctionId: string) => {
-		if (!employeeId) {
-			return;
-		}
-
-		setPositionsLoading(true);
-		try {
-			const params = new URLSearchParams({ per_page: "1000" });
-			if (selectedDirectorateId) {
-				params.set("directorate_id", selectedDirectorateId);
-			}
-			if (selectedDepartmentId) {
-				params.set("department_id", selectedDepartmentId);
-			}
-			if (selectedJobFunctionId) {
-				params.set("job_function_id", selectedJobFunctionId);
-			}
-
-			const response = await apiFetch<{ data: Position[] }>(`/positions?${params.toString()}`);
-			setPositions(response.data ?? []);
-		} catch {
-			setPositions([]);
-		} finally {
-			setPositionsLoading(false);
 		}
 	}, [employeeId]);
 
@@ -412,24 +371,6 @@ export default function EmployeeDetailPage() {
 		void loadDepartmentsByDirectorate(directorateId);
 	}, [activeTab, directorateId, employeeId, forbidden, loading, loadDepartmentsByDirectorate, loadedSections.employment]);
 
-	useEffect(() => {
-		if (loading || forbidden || activeTab !== "employment" || !employeeId || !loadedSections.employment) {
-			return;
-		}
-
-		void loadPositionsBySelection(directorateId, departmentId, jobFunctionId);
-	}, [
-		activeTab,
-		directorateId,
-		departmentId,
-		jobFunctionId,
-		employeeId,
-		forbidden,
-		loading,
-		loadPositionsBySelection,
-		loadedSections.employment,
-	]);
-
 	async function handleEmployeeUpdate(values: EmployeeFormValues) {
 		setSavingEmployee(true);
 		setError(null);
@@ -522,14 +463,8 @@ export default function EmployeeDetailPage() {
 		event.preventDefault();
 		setError(null);
 
-		const resolvedPositionId = positionId
-			? Number(positionId)
-			: filteredPositions.length > 0
-				? filteredPositions[0].id
-				: null;
-
-		if (!resolvedPositionId) {
-			setError("Selecteer een werkpositie om afdeling en directoraat correct te koppelen.");
+		if (!directorateId || !departmentId) {
+			setError("Selecteer eerst een directoraat en afdeling.");
 			return;
 		}
 
@@ -537,7 +472,8 @@ export default function EmployeeDetailPage() {
 			method: "POST",
 			body: JSON.stringify({
 				employee_id: Number(employeeId),
-				position_id: resolvedPositionId,
+				directorate_id: Number(directorateId),
+				department_id: Number(departmentId),
 				job_function_id: jobFunctionId ? Number(jobFunctionId) : null,
 				start_date: startDate,
 				employment_type: employmentType,
@@ -546,11 +482,11 @@ export default function EmployeeDetailPage() {
 		});
 
 		setRecords((prev) => [created.data, ...prev]);
-		setPositionId("");
 		setDirectorateId("");
 		setDepartmentId("");
 		setJobFunctionId("");
 		setStartDate("");
+		setDepartments([]);
 	}
 
 	async function handleEmploymentDelete(id: number) {
@@ -793,23 +729,6 @@ export default function EmployeeDetailPage() {
 	}
 
 	const filteredDepartments = departments;
-	const filteredPositions = positions;
-	const hasNoExactPositionMatch = Boolean(directorateId || departmentId || jobFunctionId) && filteredPositions.length === 0;
-
-	function syncPositionSelection() {
-		const matches = positions;
-
-		if (matches.length === 1) {
-			setPositionId(String(matches[0].id));
-			return;
-		}
-
-		if (positionId && matches.some((position) => String(position.id) === positionId)) {
-			return;
-		}
-
-		setPositionId("");
-	}
 
 	function getEmploymentTypeLabel(type: string) {
 		switch (type) {
@@ -930,7 +849,6 @@ export default function EmployeeDetailPage() {
 									const nextDirectorateId = event.target.value;
 									setDirectorateId(nextDirectorateId);
 									setDepartmentId("");
-									syncPositionSelection();
 								}}
 							>
 								<option value="">Selecteer directoraat</option>
@@ -942,7 +860,6 @@ export default function EmployeeDetailPage() {
 								onChange={(event) => {
 									const nextDepartmentId = event.target.value;
 									setDepartmentId(nextDepartmentId);
-									syncPositionSelection();
 								}}
 							>
 								<option value="">{departmentsLoading ? "Afdelingen laden..." : "Selecteer afdeling"}</option>
@@ -953,21 +870,11 @@ export default function EmployeeDetailPage() {
 								onChange={(event) => {
 									const nextJobFunctionId = event.target.value;
 									setJobFunctionId(nextJobFunctionId);
-									syncPositionSelection();
 								}}
 							>
 								<option value="">Selecteer functie</option>
 								{jobFunctions.map((jobFunction) => <option key={jobFunction.id} value={jobFunction.id}>{jobFunction.title}</option>)}
 							</select>
-							<select disabled={positionsLoading} value={positionId} onChange={(event) => setPositionId(event.target.value)} required>
-								<option value="">{positionsLoading ? "Werkposities laden..." : "Selecteer werkpositie"}</option>
-								{filteredPositions.map((position) => <option key={position.id} value={position.id}>{position.title}{position.department_name ? ` - ${position.department_name}` : ""}</option>)}
-							</select>
-							{hasNoExactPositionMatch && (
-								<p className="muted" style={{ margin: 0 }}>
-									Geen exacte werkpositie gevonden op deze filters. Alle werkposities worden getoond zodat je toch kunt kiezen.
-								</p>
-							)}
 							<input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required />
 							<select value={employmentType} onChange={(event) => setEmploymentType(event.target.value)}>
 								<option value="permanent">Vaste dienst</option>
