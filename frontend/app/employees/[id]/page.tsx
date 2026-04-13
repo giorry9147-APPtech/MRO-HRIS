@@ -439,11 +439,22 @@ export default function EmployeeDetailPage() {
 	async function handleEmploymentCreate(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
+		const resolvedPositionId = positionId
+			? Number(positionId)
+			: filteredPositions.length > 0
+				? filteredPositions[0].id
+				: null;
+
+		if ((directorateId || departmentId || jobFunctionId) && !resolvedPositionId) {
+			setError("Geen passende werkpositie gevonden voor deze selectie. Kies eerst een werkpositie of maak er een aan.");
+			return;
+		}
+
 		const created = await apiFetch<{ data: { id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string } }>("/employment-records", {
 			method: "POST",
 			body: JSON.stringify({
 				employee_id: Number(employeeId),
-				position_id: positionId ? Number(positionId) : null,
+				position_id: resolvedPositionId,
 				job_function_id: jobFunctionId ? Number(jobFunctionId) : null,
 				start_date: startDate,
 				employment_type: employmentType,
