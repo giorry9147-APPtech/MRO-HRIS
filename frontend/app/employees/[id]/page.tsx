@@ -19,11 +19,38 @@ type Employee = {
 	profile_photo_url: string | null;
 	date_joined: string | null;
 	status: string;
+	current_employment: {
+		id: number;
+		position_id: number | null;
+		position_title: string | null;
+		job_function_id: number | null;
+		job_function_title: string | null;
+		department_id: number | null;
+		department_name: string | null;
+		directorate_id: number | null;
+		directorate_name: string | null;
+		start_date: string | null;
+		end_date: string | null;
+		employment_type: string;
+		status: string;
+	} | null;
 };
 
 type Directorate = { id: number; name: string };
 type Department = { id: number; name: string; directorate_id: number | null };
 type JobFunction = { id: number; title: string };
+type EmploymentRecord = {
+	id: number;
+	position_title: string | null;
+	job_function_id: number | null;
+	job_function_title: string | null;
+	department_name: string | null;
+	directorate_name: string | null;
+	start_date: string;
+	end_date: string | null;
+	employment_type: string;
+	status: string;
+};
 type Asset = { id: number; asset_tag: string; name: string };
 type Qualification = {
 	id: number;
@@ -55,7 +82,7 @@ export default function EmployeeDetailPage() {
 	const { user, loading, forbidden } = useAuthGuard("employees.view");
 	const [employee, setEmployee] = useState<Employee | null>(null);
 	const [documents, setDocuments] = useState<Array<{ id: number; title: string; original_name: string; document_type: string }>>([]);
-	const [records, setRecords] = useState<Array<{ id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string }>>([]);
+	const [records, setRecords] = useState<EmploymentRecord[]>([]);
 	const [assignments, setAssignments] = useState<Array<{ id: number; asset_name: string | null; asset_tag: string | null; status: string; assigned_at: string; returned_at: string | null }>>([]);
 	const [salaryAssignments, setSalaryAssignments] = useState<Array<{ id: number; amount: string; currency: string; start_date: string; end_date: string | null; status: string }>>([]);
 	const [qualifications, setQualifications] = useState<Qualification[]>([]);
@@ -135,8 +162,50 @@ export default function EmployeeDetailPage() {
 		return fallback;
 	}
 
-	const loadProfileData = useCallback(async () => {
-		if (!employeeId || loadedSections.profile || loadingSectionsRef.current.has("profile")) {
+	useEffect(() => {
+		setEmployee(null);
+		setDocuments([]);
+		setRecords([]);
+		setAssignments([]);
+		setSalaryAssignments([]);
+		setQualifications([]);
+		setWorkExperiences([]);
+		setDirectorates([]);
+		setDepartments([]);
+		setJobFunctions([]);
+		setError(null);
+		setQualificationError(null);
+		setWorkExperienceError(null);
+		setDirectorateId("");
+		setDepartmentId("");
+		setJobFunctionId("");
+		setEmploymentType("permanent");
+		setStartDate("");
+		setAssetId("");
+		setDocumentTitle("");
+		setDocumentType("");
+		setDocumentFile(null);
+		setLoadedSections({
+			profile: false,
+			employment: false,
+			documents: false,
+			qualifications: false,
+			work: false,
+			salary: false,
+			assets: false,
+		});
+		setFormOptionsLoaded(false);
+		loadingSectionsRef.current.clear();
+		loadingFormOptionsRef.current = false;
+		setActiveTab("profile");
+	}, [employeeId]);
+
+	const loadProfileData = useCallback(async (force = false) => {
+		if (!employeeId || loadingSectionsRef.current.has("profile")) {
+			return;
+		}
+
+		if (!force && loadedSections.profile) {
 			return;
 		}
 
@@ -322,6 +391,7 @@ export default function EmployeeDetailPage() {
 		}
 
 		if (activeTab === "employment") {
+			void loadEmploymentData(true);
 			void loadEmploymentFormOptions();
 			return;
 		}
@@ -369,12 +439,12 @@ export default function EmployeeDetailPage() {
 	]);
 
 	useEffect(() => {
-		if (loading || forbidden || activeTab !== "employment" || !employeeId || !loadedSections.employment) {
+		if (loading || forbidden || activeTab !== "employment" || !employeeId) {
 			return;
 		}
 
 		void loadDepartmentsByDirectorate(directorateId);
-	}, [activeTab, directorateId, employeeId, forbidden, loading, loadDepartmentsByDirectorate, loadedSections.employment]);
+	}, [activeTab, directorateId, employeeId, forbidden, loading, loadDepartmentsByDirectorate]);
 
 	async function handleEmployeeUpdate(values: EmployeeFormValues) {
 		setSavingEmployee(true);
@@ -488,7 +558,7 @@ export default function EmployeeDetailPage() {
 		}
 
 		try {
-			const created = await apiFetch<{ data: { id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string } }>("/employment-records", {
+			await apiFetch<{ data: EmploymentRecord }>("/employment-records", {
 				method: "POST",
 				body: JSON.stringify({
 					employee_id: Number(employeeId),
@@ -500,12 +570,15 @@ export default function EmployeeDetailPage() {
 					status: "active",
 				}),
 			});
-			setRecords((prev) => [created.data, ...prev]);
 			setDirectorateId("");
 			setDepartmentId("");
 			setJobFunctionId("");
 			setStartDate("");
 			setDepartments([]);
+			await Promise.all([
+				loadEmploymentData(true),
+				loadProfileData(true),
+			]);
 		} catch (err) {
 			setError(getErrorMessage(err, "Dienstverband kon niet worden opgeslagen."));
 		}
@@ -518,7 +591,10 @@ export default function EmployeeDetailPage() {
 
 		try {
 			await apiFetch<{ message: string }>(`/employment-records/${id}`, { method: "DELETE" });
-			setRecords((prev) => prev.filter((item) => item.id !== id));
+			await Promise.all([
+				loadEmploymentData(true),
+				loadProfileData(true),
+			]);
 		} catch (err) {
 			setError(getErrorMessage(err, "Dienstverband kon niet worden verwijderd."));
 		}
@@ -824,6 +900,10 @@ export default function EmployeeDetailPage() {
 		{ id: "assets", label: "Bedrijfsmiddelen", visible: true },
 		{ id: "history", label: "Historiek", visible: true },
 	];
+	const activeEmployment = employee?.current_employment ?? records.find((record) => record.status === "active") ?? null;
+	const employmentSummary = activeEmployment?.start_date
+		? `${getEmploymentTypeLabel(activeEmployment.employment_type)} sinds ${activeEmployment.start_date}`
+		: (activeEmployment ? getEmploymentTypeLabel(activeEmployment.employment_type) : null);
 
 	return (
 		<ModuleFrame
@@ -862,8 +942,10 @@ export default function EmployeeDetailPage() {
 								displayName={`${employee.first_name} ${employee.last_name}`}
 								statusLabel={getEmployeeStatusLabel(employee.status)}
 								statusClass={`status-${employee.status}`}
-								departmentName={records.find((r) => r.status === "active")?.department_name ?? null}
-								directorateName={records.find((r) => r.status === "active")?.directorate_name ?? null}
+								departmentName={activeEmployment?.department_name ?? null}
+								directorateName={activeEmployment?.directorate_name ?? null}
+								jobFunctionTitle={activeEmployment?.job_function_title ?? null}
+								employmentSummary={employmentSummary}
 								onSubmit={handleEmployeeUpdate}
 								submitLabel={savingEmployee ? "Opslaan..." : "Medewerker opslaan"}
 							/>
@@ -888,11 +970,19 @@ export default function EmployeeDetailPage() {
 								</div>
 								<div className="employee-profile-dept" style={{ marginTop: "0.5rem" }}>
 									<span className="employee-profile-dept-label">Afdeling</span>
-									{records.find((r) => r.status === "active")?.department_name ?? "Niet gekoppeld"}
+									{activeEmployment?.department_name ?? "Niet gekoppeld"}
 								</div>
 								<div className="employee-profile-dept">
 									<span className="employee-profile-dept-label">Directoraat</span>
-									{records.find((r) => r.status === "active")?.directorate_name ?? "—"}
+									{activeEmployment?.directorate_name ?? "—"}
+								</div>
+								<div className="employee-profile-dept">
+									<span className="employee-profile-dept-label">Functie</span>
+									{activeEmployment?.job_function_title ?? "—"}
+								</div>
+								<div className="employee-profile-dept">
+									<span className="employee-profile-dept-label">Dienstverband</span>
+									{employmentSummary ?? "—"}
 								</div>
 							</div>
 						</div>

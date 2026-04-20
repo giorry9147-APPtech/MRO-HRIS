@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employee extends Model
@@ -34,6 +35,16 @@ class Employee extends Model
 	public function employmentRecords(): HasMany
 	{
 		return $this->hasMany(EmploymentRecord::class)->latest('start_date');
+	}
+
+	public function currentEmploymentRecord(): HasOne
+	{
+		return $this->hasOne(EmploymentRecord::class)->ofMany([
+			'start_date' => 'max',
+			'id' => 'max',
+		], function ($query) {
+			$query->where('status', 'active');
+		});
 	}
 
 	public function assetAssignments(): HasMany

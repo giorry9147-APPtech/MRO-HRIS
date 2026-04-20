@@ -90,8 +90,16 @@ const DASHBOARD_LINKS: DashboardLink[] = [
 
 export default function DashboardPage() {
 	const router = useRouter();
+	const emblemSources = [
+		"/dashboard/ministerie-embleem.png",
+		"/dashboard/ministerie-embleem.jpg",
+		"/dashboard/ministerie-embleem.jpeg",
+		"/dashboard/ministerie-embleem.webp",
+		"/dashboard/ministerie-embleem-placeholder.svg",
+	];
 	const [user, setUser] = useState<AuthUser | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [emblemSourceIndex, setEmblemSourceIndex] = useState(0);
 	const [kpis, setKpis] = useState<{
 		employees: number | null;
 		directorates: number | null;
@@ -159,22 +167,26 @@ export default function DashboardPage() {
 			<section className="card dashboard-hero-card">
 				<div className="dashboard-hero-grid">
 					<div className="dashboard-emblem-block">
-						<Image
-							src="/dashboard/ministerie-embleem-placeholder.svg"
-							alt="Plaats hier uw ministerieel embleem"
-							width={180}
-							height={180}
-							className="dashboard-emblem-image"
-							priority
-						/>
-						<p className="dashboard-image-hint">Vervang dit bestand met uw eigen embleem.</p>
+						<div className="dashboard-emblem-frame">
+							<Image
+								src={emblemSources[emblemSourceIndex]}
+								alt="Embleem Ministerie van Regionale Ontwikkeling"
+								width={220}
+								height={220}
+								className="dashboard-emblem-image"
+								priority
+								onError={() => {
+									setEmblemSourceIndex((current) => Math.min(current + 1, emblemSources.length - 1));
+								}}
+							/>
+							<div className="dashboard-emblem-wash" />
+						</div>
 					</div>
 
 					<div className="dashboard-hero-copy">
-						<p className="dashboard-kicker">Ministerie van Regionale Ontwikkeling en Sport</p>
+						<p className="dashboard-kicker">Ministerie van Regionale Ontwikkeling</p>
 						<h1>Human Resource Informatie Systeem</h1>
 						<div className="dashboard-title-rule" />
-						<p className="dashboard-subtitle">Ministerie van Regionale Ontwikkeling en Sport</p>
 
 						{error && <p className="error">{error}</p>}
 						<p className="dashboard-minister">Minister: Miquella Huur BSc.</p>
@@ -217,7 +229,6 @@ export default function DashboardPage() {
 						sizes="(max-width: 860px) 100vw, 60vw"
 					/>
 					<div className="dashboard-banner-overlay" />
-					<p className="dashboard-banner-hint">Vervang dit bestand met uw eigen headerafbeelding.</p>
 				</div>
 
 			</section>

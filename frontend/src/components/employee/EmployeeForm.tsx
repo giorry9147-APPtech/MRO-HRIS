@@ -22,6 +22,8 @@ type EmployeeFormProps = {
 	statusClass?: string;
 	departmentName?: string | null;
 	directorateName?: string | null;
+	jobFunctionTitle?: string | null;
+	employmentSummary?: string | null;
 	onSubmit: (values: EmployeeFormValues) => Promise<void>;
 	submitLabel: string;
 };
@@ -34,6 +36,8 @@ export default function EmployeeForm({
 	statusClass,
 	departmentName,
 	directorateName,
+	jobFunctionTitle,
+	employmentSummary,
 	onSubmit,
 	submitLabel,
 }: EmployeeFormProps) {
@@ -125,6 +129,18 @@ export default function EmployeeForm({
 							<div className="employee-profile-dept">
 								<span className="employee-profile-dept-label">Directoraat</span>
 								{directorateName}
+							</div>
+						)}
+						{jobFunctionTitle && (
+							<div className="employee-profile-dept">
+								<span className="employee-profile-dept-label">Functie</span>
+								{jobFunctionTitle}
+							</div>
+						)}
+						{employmentSummary && (
+							<div className="employee-profile-dept">
+								<span className="employee-profile-dept-label">Dienstverband</span>
+								{employmentSummary}
 							</div>
 						)}
 					</div>

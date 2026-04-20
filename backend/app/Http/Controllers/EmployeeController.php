@@ -25,19 +25,23 @@ class EmployeeController extends Controller
 
 	public function store(StoreEmployeeRequest $request): EmployeeResource
 	{
-		$employee = $this->employeeService->create($request->validated());
+		$employee = $this->loadEmployeeRelations(
+			$this->employeeService->create($request->validated())
+		);
 
 		return new EmployeeResource($employee);
 	}
 
 	public function show(Employee $employee): EmployeeResource
 	{
-		return new EmployeeResource($employee);
+		return new EmployeeResource($this->loadEmployeeRelations($employee));
 	}
 
 	public function update(UpdateEmployeeRequest $request, Employee $employee): EmployeeResource
 	{
-		$updatedEmployee = $this->employeeService->update($employee, $request->validated());
+		$updatedEmployee = $this->loadEmployeeRelations(
+			$this->employeeService->update($employee, $request->validated())
+		);
 
 		return new EmployeeResource($updatedEmployee);
 	}
@@ -47,5 +51,18 @@ class EmployeeController extends Controller
 		$this->employeeService->delete($employee);
 
 		return response()->json(['message' => 'Employee deleted.']);
+	}
+
+	private function loadEmployeeRelations(Employee $employee): Employee
+	{
+		$employee->loadMissing([
+			'currentEmploymentRecord.department.directorate',
+			'currentEmploymentRecord.directorate',
+			'currentEmploymentRecord.jobFunction',
+			'currentEmploymentRecord.position.jobFunction',
+			'currentEmploymentRecord.position.department.directorate',
+		]);
+
+		return $employee;
 	}
 }
