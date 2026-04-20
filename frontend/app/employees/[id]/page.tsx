@@ -439,7 +439,7 @@ export default function EmployeeDetailPage() {
 	]);
 
 	useEffect(() => {
-		if (loading || forbidden || activeTab !== "employment" || !employeeId) {
+		if (loading || forbidden || activeTab !== "employment" || !employeeId || !directorateId) {
 			return;
 		}
 
@@ -558,7 +558,7 @@ export default function EmployeeDetailPage() {
 		}
 
 		try {
-			await apiFetch<{ data: EmploymentRecord }>("/employment-records", {
+			const created = await apiFetch<{ data: EmploymentRecord }>("/employment-records", {
 				method: "POST",
 				body: JSON.stringify({
 					employee_id: Number(employeeId),
@@ -570,15 +570,13 @@ export default function EmployeeDetailPage() {
 					status: "active",
 				}),
 			});
+			setRecords((prev) => [created.data, ...prev]);
 			setDirectorateId("");
 			setDepartmentId("");
 			setJobFunctionId("");
 			setStartDate("");
 			setDepartments([]);
-			await Promise.all([
-				loadEmploymentData(true),
-				loadProfileData(true),
-			]);
+			await loadProfileData(true);
 		} catch (err) {
 			setError(getErrorMessage(err, "Dienstverband kon niet worden opgeslagen."));
 		}
@@ -1004,6 +1002,7 @@ export default function EmployeeDetailPage() {
 									const nextDirectorateId = event.target.value;
 									setDirectorateId(nextDirectorateId);
 									setDepartmentId("");
+									setDepartments([]);
 								}}
 							>
 								<option value="">Selecteer directoraat</option>
