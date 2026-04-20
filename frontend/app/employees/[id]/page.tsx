@@ -558,7 +558,7 @@ export default function EmployeeDetailPage() {
 		}
 
 		try {
-			const created = await apiFetch<{ data: EmploymentRecord }>("/employment-records", {
+			await apiFetch<{ data: EmploymentRecord }>("/employment-records", {
 				method: "POST",
 				body: JSON.stringify({
 					employee_id: Number(employeeId),
@@ -570,13 +570,12 @@ export default function EmployeeDetailPage() {
 					status: "active",
 				}),
 			});
-			setRecords((prev) => [created.data, ...prev]);
 			setDirectorateId("");
 			setDepartmentId("");
 			setJobFunctionId("");
 			setStartDate("");
 			setDepartments([]);
-			await loadProfileData(true);
+			setLoadedSections((prev) => ({ ...prev, employment: false, profile: false }));
 		} catch (err) {
 			setError(getErrorMessage(err, "Dienstverband kon niet worden opgeslagen."));
 		}
@@ -589,10 +588,7 @@ export default function EmployeeDetailPage() {
 
 		try {
 			await apiFetch<{ message: string }>(`/employment-records/${id}`, { method: "DELETE" });
-			await Promise.all([
-				loadEmploymentData(true),
-				loadProfileData(true),
-			]);
+			setLoadedSections((prev) => ({ ...prev, employment: false, profile: false }));
 		} catch (err) {
 			setError(getErrorMessage(err, "Dienstverband kon niet worden verwijderd."));
 		}
