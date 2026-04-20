@@ -92,7 +92,7 @@ export default function AdminUserScopePage() {
 	}
 
 	return (
-		<ModuleFrame title="Beheer - Gebruikersscopes" subtitle="Beheer zichtbaarheid per gebruiker op directoraat- en afdelingsniveau.">
+		<ModuleFrame title="Gebruikersscopes" icon="🔑" kicker="Toegangsbeheer" subtitle="Beheer zichtbaarheid per gebruiker op directoraat- en afdelingsniveau.">
 			{error && <p className="error">{error}</p>}
 
 			<div className="table-wrapper">

@@ -98,6 +98,8 @@ export default function DepartmentsPage() {
 	return (
 		<ModuleFrame
 			title="Afdelingen"
+			icon="🗂️"
+			kicker="Organisatiestructuur"
 			subtitle="Beheer afdelingen en code-structuur."
 			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek afdeling" /></div>}
 		>

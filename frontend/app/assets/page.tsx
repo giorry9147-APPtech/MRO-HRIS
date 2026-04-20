@@ -103,6 +103,8 @@ export default function AssetsPage() {
   return (
     <ModuleFrame
       title="Bedrijfsmiddelen"
+      icon="🧰"
+      kicker="Inventarisbeheer"
       subtitle="Registratie en statusbeheer van bedrijfsmiddelen."
 	  filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek bedrijfsmiddel" /></div>}
     >

@@ -108,6 +108,8 @@ export default function PositionsPage() {
 	return (
 		<ModuleFrame
 			title="Werkposities"
+			icon="🎖️"
+			kicker="Formatieplaatsen"
 			subtitle="Beheer formatieplaatsen en functiekoppelingen."
 			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek werkpositie" /></div>}
 		>

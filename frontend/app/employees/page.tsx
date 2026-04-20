@@ -82,6 +82,8 @@ export default function EmployeesPage() {
 	return (
 		<ModuleFrame
 			title="Medewerkers"
+			icon="👥"
+			kicker="Personeelsregister"
 			subtitle="Personeelsregister met snelle zoek- en navigatiefunctie."
 			actions={hasPermission(user, "employees.create") ? <Link className="btn link" href="/employees/new">Nieuwe medewerker</Link> : undefined}
 			filters={

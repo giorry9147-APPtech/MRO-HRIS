@@ -86,6 +86,8 @@ export default function DirectoratesPage() {
 	return (
 		<ModuleFrame
 			title="Directoraten"
+			icon="🏛️"
+			kicker="Organisatiestructuur"
 			subtitle="Beheer directoraten binnen de organisatiestructuur."
 			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek directoraat" /></div>}
 		>

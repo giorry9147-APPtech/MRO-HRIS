@@ -101,6 +101,8 @@ export default function FunctionsPage() {
 	return (
 		<ModuleFrame
 			title="Functies"
+			icon="💼"
+			kicker="HR Classificaties"
 			subtitle="Standaardiseer functieprofielen en status."
 			filters={<div className="filter-row"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Zoek functie of code" /></div>}
 		>

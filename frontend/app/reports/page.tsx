@@ -330,7 +330,7 @@ export default function ReportsPage() {
 	}
 
 	return (
-		<ModuleFrame title="Rapporten" subtitle="Kernrapportages en managementoverzicht.">
+		<ModuleFrame title="Rapporten" icon="📈" kicker="Managementoverzicht" subtitle="Kernrapportages en managementoverzicht.">
 			{error && <p className="error">{error}</p>}
 			<div className="tabs">
 				<button type="button" className={`tab-btn${activeSection === "overview" ? " active" : ""}`} onClick={() => setActiveSection("overview")}>Overzicht</button>

@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { hasPermission } from "@/lib/auth";
 import { ApiError, apiFetch } from "@/lib/api";
@@ -103,6 +102,8 @@ export default function EmployeeDetailPage() {
 		assets: false,
 	});
 	const loadingSectionsRef = useRef<Set<DetailSection>>(new Set());
+	const [formOptionsLoaded, setFormOptionsLoaded] = useState(false);
+	const loadingFormOptionsRef = useRef(false);
 
 	const canUploadDocuments = hasPermission(user, "documents.upload");
 	const canDeleteDocuments = hasPermission(user, "documents.delete");
@@ -162,26 +163,8 @@ export default function EmployeeDetailPage() {
 
 		loadingSectionsRef.current.add("employment");
 		try {
-			const [recordsResult, directoratesResult, jobFunctionsResult] = await Promise.allSettled([
-				apiFetch<{ data: Array<{ id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string }> }>(`/employment-records?employee_id=${employeeId}`),
-				apiFetch<{ data: Directorate[] }>("/directorates?per_page=500"),
-				apiFetch<{ data: JobFunction[] }>("/job-functions?per_page=500"),
-			]);
-
-			const recordsData = recordsResult.status === "fulfilled" ? (recordsResult.value.data ?? []) : [];
-
-			const directoratesData = directoratesResult.status === "fulfilled"
-				? (directoratesResult.value.data ?? [])
-				: [];
-
-			const jobFunctionsData = jobFunctionsResult.status === "fulfilled"
-				? (jobFunctionsResult.value.data ?? [])
-				: [];
-
-			setRecords(recordsData);
-			setDirectorates(directoratesData);
-			setDepartments([]);
-			setJobFunctions(jobFunctionsData);
+			const recordsResponse = await apiFetch<{ data: Array<{ id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string }> }>(`/employment-records?employee_id=${employeeId}`);
+			setRecords(recordsResponse.data ?? []);
 			setLoadedSections((current) => ({ ...current, employment: true }));
 		} catch {
 			setError("Werkgegevens konden niet worden geladen.");
@@ -189,6 +172,26 @@ export default function EmployeeDetailPage() {
 			loadingSectionsRef.current.delete("employment");
 		}
 	}, [employeeId, loadedSections.employment]);
+
+	const loadEmploymentFormOptions = useCallback(async () => {
+		if (!employeeId || formOptionsLoaded || loadingFormOptionsRef.current) {
+			return;
+		}
+
+		loadingFormOptionsRef.current = true;
+		try {
+			const [directoratesResult, jobFunctionsResult] = await Promise.allSettled([
+				apiFetch<{ data: Directorate[] }>("/directorates?per_page=500"),
+				apiFetch<{ data: JobFunction[] }>("/job-functions?per_page=500"),
+			]);
+
+			setDirectorates(directoratesResult.status === "fulfilled" ? (directoratesResult.value.data ?? []) : []);
+			setJobFunctions(jobFunctionsResult.status === "fulfilled" ? (jobFunctionsResult.value.data ?? []) : []);
+			setFormOptionsLoaded(true);
+		} finally {
+			loadingFormOptionsRef.current = false;
+		}
+	}, [employeeId, formOptionsLoaded]);
 
 	const loadDepartmentsByDirectorate = useCallback(async (selectedDirectorateId: string) => {
 		if (!employeeId) {
@@ -319,7 +322,7 @@ export default function EmployeeDetailPage() {
 		}
 
 		if (activeTab === "employment") {
-			void loadEmploymentData(true);
+			void loadEmploymentFormOptions();
 			return;
 		}
 
@@ -359,6 +362,7 @@ export default function EmployeeDetailPage() {
 		loadAssetsData,
 		loadDocumentsData,
 		loadEmploymentData,
+		loadEmploymentFormOptions,
 		loadQualificationsData,
 		loadSalaryData,
 		loadWorkExperiencesData,
@@ -410,6 +414,8 @@ export default function EmployeeDetailPage() {
 				});
 
 			setEmployee(updated.data);
+		} catch (err) {
+			setError(getErrorMessage(err, "Medewerker kon niet worden opgeslagen."));
 		} finally {
 			setSavingEmployee(false);
 		}
@@ -424,12 +430,17 @@ export default function EmployeeDetailPage() {
 			return;
 		}
 
-		await apiFetch<{ message: string }>(`/employees/${employee.id}`, { method: "DELETE" });
-		router.push("/employees");
+		try {
+			await apiFetch<{ message: string }>(`/employees/${employee.id}`, { method: "DELETE" });
+			router.push("/employees");
+		} catch (err) {
+			setError(getErrorMessage(err, "Medewerker kon niet worden verwijderd."));
+		}
 	}
 
 	async function handleDocumentUpload(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		setError(null);
 		if (!documentFile) {
 			return;
 		}
@@ -440,15 +451,18 @@ export default function EmployeeDetailPage() {
 		formData.append("document_type", documentType);
 		formData.append("file", documentFile);
 
-		const created = await apiFetch<{ data: { id: number; title: string; original_name: string; document_type: string } }>("/documents", {
-			method: "POST",
-			body: formData,
-		});
-
-		setDocuments((prev) => [created.data, ...prev]);
-		setDocumentTitle("");
-		setDocumentType("");
-		setDocumentFile(null);
+		try {
+			const created = await apiFetch<{ data: { id: number; title: string; original_name: string; document_type: string } }>("/documents", {
+				method: "POST",
+				body: formData,
+			});
+			setDocuments((prev) => [created.data, ...prev]);
+			setDocumentTitle("");
+			setDocumentType("");
+			setDocumentFile(null);
+		} catch (err) {
+			setError(getErrorMessage(err, "Document kon niet worden geüpload."));
+		}
 	}
 
 	async function handleDocumentDelete(id: number) {
@@ -456,8 +470,12 @@ export default function EmployeeDetailPage() {
 			return;
 		}
 
-		await apiFetch<{ message: string }>(`/documents/${id}`, { method: "DELETE" });
-		setDocuments((prev) => prev.filter((item) => item.id !== id));
+		try {
+			await apiFetch<{ message: string }>(`/documents/${id}`, { method: "DELETE" });
+			setDocuments((prev) => prev.filter((item) => item.id !== id));
+		} catch (err) {
+			setError(getErrorMessage(err, "Document kon niet worden verwijderd."));
+		}
 	}
 
 	async function handleEmploymentCreate(event: FormEvent<HTMLFormElement>) {
@@ -469,25 +487,28 @@ export default function EmployeeDetailPage() {
 			return;
 		}
 
-		const created = await apiFetch<{ data: { id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string } }>("/employment-records", {
-			method: "POST",
-			body: JSON.stringify({
-				employee_id: Number(employeeId),
-				directorate_id: Number(directorateId),
-				department_id: Number(departmentId),
-				job_function_id: jobFunctionId ? Number(jobFunctionId) : null,
-				start_date: startDate,
-				employment_type: employmentType,
-				status: "active",
-			}),
-		});
-
-		setRecords((prev) => [created.data, ...prev]);
-		setDirectorateId("");
-		setDepartmentId("");
-		setJobFunctionId("");
-		setStartDate("");
-		setDepartments([]);
+		try {
+			const created = await apiFetch<{ data: { id: number; position_title: string | null; job_function_id: number | null; job_function_title: string | null; department_name: string | null; directorate_name: string | null; start_date: string; end_date: string | null; employment_type: string; status: string } }>("/employment-records", {
+				method: "POST",
+				body: JSON.stringify({
+					employee_id: Number(employeeId),
+					directorate_id: Number(directorateId),
+					department_id: Number(departmentId),
+					job_function_id: jobFunctionId ? Number(jobFunctionId) : null,
+					start_date: startDate,
+					employment_type: employmentType,
+					status: "active",
+				}),
+			});
+			setRecords((prev) => [created.data, ...prev]);
+			setDirectorateId("");
+			setDepartmentId("");
+			setJobFunctionId("");
+			setStartDate("");
+			setDepartments([]);
+		} catch (err) {
+			setError(getErrorMessage(err, "Dienstverband kon niet worden opgeslagen."));
+		}
 	}
 
 	async function handleEmploymentDelete(id: number) {
@@ -495,29 +516,41 @@ export default function EmployeeDetailPage() {
 			return;
 		}
 
-		await apiFetch<{ message: string }>(`/employment-records/${id}`, { method: "DELETE" });
-		setRecords((prev) => prev.filter((item) => item.id !== id));
+		try {
+			await apiFetch<{ message: string }>(`/employment-records/${id}`, { method: "DELETE" });
+			setRecords((prev) => prev.filter((item) => item.id !== id));
+		} catch (err) {
+			setError(getErrorMessage(err, "Dienstverband kon niet worden verwijderd."));
+		}
 	}
 
 	async function handleAssetAssign(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		setError(null);
 
-		const created = await apiFetch<{ data: { id: number; asset_name: string | null; asset_tag: string | null; status: string; assigned_at: string; returned_at: string | null } }>("/asset-assignments", {
-			method: "POST",
-			body: JSON.stringify({ employee_id: Number(employeeId), asset_id: Number(assetId) }),
-		});
-
-		setAssignments((prev) => [created.data, ...prev]);
-		setAssets((prev) => prev.filter((asset) => String(asset.id) !== assetId));
-		setAssetId("");
+		try {
+			const created = await apiFetch<{ data: { id: number; asset_name: string | null; asset_tag: string | null; status: string; assigned_at: string; returned_at: string | null } }>("/asset-assignments", {
+				method: "POST",
+				body: JSON.stringify({ employee_id: Number(employeeId), asset_id: Number(assetId) }),
+			});
+			setAssignments((prev) => [created.data, ...prev]);
+			setAssets((prev) => prev.filter((asset) => String(asset.id) !== assetId));
+			setAssetId("");
+		} catch (err) {
+			setError(getErrorMessage(err, "Asset kon niet worden toegewezen."));
+		}
 	}
 
 	async function handleReturnAssignment(id: number) {
-		const updated = await apiFetch<{ data: { id: number; asset_name: string | null; asset_tag: string | null; status: string; assigned_at: string; returned_at: string | null } }>(`/asset-assignments/${id}/return`, {
-			method: "PATCH",
-		});
-
-		setAssignments((prev) => prev.map((assignment) => assignment.id === id ? updated.data : assignment));
+		setError(null);
+		try {
+			const updated = await apiFetch<{ data: { id: number; asset_name: string | null; asset_tag: string | null; status: string; assigned_at: string; returned_at: string | null } }>(`/asset-assignments/${id}/return`, {
+				method: "PATCH",
+			});
+			setAssignments((prev) => prev.map((assignment) => assignment.id === id ? updated.data : assignment));
+		} catch (err) {
+			setError(getErrorMessage(err, "Asset kon niet worden teruggegeven."));
+		}
 	}
 
 	async function handleAssignmentDelete(id: number) {
@@ -525,28 +558,36 @@ export default function EmployeeDetailPage() {
 			return;
 		}
 
-		await apiFetch<{ message: string }>(`/asset-assignments/${id}`, { method: "DELETE" });
-		setAssignments((prev) => prev.filter((item) => item.id !== id));
+		try {
+			await apiFetch<{ message: string }>(`/asset-assignments/${id}`, { method: "DELETE" });
+			setAssignments((prev) => prev.filter((item) => item.id !== id));
+		} catch (err) {
+			setError(getErrorMessage(err, "Asset-toewijzing kon niet worden verwijderd."));
+		}
 	}
 
 	async function handleSalaryCreate(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		setError(null);
 
-		const created = await apiFetch<{ data: { id: number; amount: string; currency: string; start_date: string; end_date: string | null; status: string } }>("/salary-assignments", {
-			method: "POST",
-			body: JSON.stringify({
-				employee_id: Number(employeeId),
-				amount: Number(salaryAmount),
-				currency: salaryCurrency,
-				start_date: salaryStartDate,
-				status: "active",
-			}),
-		});
-
-		setSalaryAssignments((prev) => [created.data, ...prev]);
-		setSalaryAmount("");
-		setSalaryCurrency("SRD");
-		setSalaryStartDate("");
+		try {
+			const created = await apiFetch<{ data: { id: number; amount: string; currency: string; start_date: string; end_date: string | null; status: string } }>("/salary-assignments", {
+				method: "POST",
+				body: JSON.stringify({
+					employee_id: Number(employeeId),
+					amount: Number(salaryAmount),
+					currency: salaryCurrency,
+					start_date: salaryStartDate,
+					status: "active",
+				}),
+			});
+			setSalaryAssignments((prev) => [created.data, ...prev]);
+			setSalaryAmount("");
+			setSalaryCurrency("SRD");
+			setSalaryStartDate("");
+		} catch (err) {
+			setError(getErrorMessage(err, "Salaris kon niet worden opgeslagen."));
+		}
 	}
 
 	async function handleSalaryDelete(id: number) {
@@ -554,8 +595,12 @@ export default function EmployeeDetailPage() {
 			return;
 		}
 
-		await apiFetch<{ message: string }>(`/salary-assignments/${id}`, { method: "DELETE" });
-		setSalaryAssignments((prev) => prev.filter((item) => item.id !== id));
+		try {
+			await apiFetch<{ message: string }>(`/salary-assignments/${id}`, { method: "DELETE" });
+			setSalaryAssignments((prev) => prev.filter((item) => item.id !== id));
+		} catch (err) {
+			setError(getErrorMessage(err, "Salaristoewijzing kon niet worden verwijderd."));
+		}
 	}
 
 	async function handleQualificationCreate(event: FormEvent<HTMLFormElement>) {
@@ -615,8 +660,12 @@ export default function EmployeeDetailPage() {
 			return;
 		}
 
-		await apiFetch<{ message: string }>(`/qualifications/${id}`, { method: "DELETE" });
-		setQualifications((prev) => prev.filter((item) => item.id !== id));
+		try {
+			await apiFetch<{ message: string }>(`/qualifications/${id}`, { method: "DELETE" });
+			setQualifications((prev) => prev.filter((item) => item.id !== id));
+		} catch (err) {
+			setQualificationError(getErrorMessage(err, "Kwalificatie kon niet worden verwijderd."));
+		}
 	}
 
 	function startQualificationEdit(item: Qualification) {
@@ -699,8 +748,12 @@ export default function EmployeeDetailPage() {
 			return;
 		}
 
-		await apiFetch<{ message: string }>(`/work-experiences/${id}`, { method: "DELETE" });
-		setWorkExperiences((prev) => prev.filter((item) => item.id !== id));
+		try {
+			await apiFetch<{ message: string }>(`/work-experiences/${id}`, { method: "DELETE" });
+			setWorkExperiences((prev) => prev.filter((item) => item.id !== id));
+		} catch (err) {
+			setWorkExperienceError(getErrorMessage(err, "Werkervaring kon niet worden verwijderd."));
+		}
 	}
 
 	function startWorkExperienceEdit(item: WorkExperience) {
@@ -774,8 +827,10 @@ export default function EmployeeDetailPage() {
 
 	return (
 		<ModuleFrame
-			title="Medewerkerdetails"
-			subtitle={employee ? `${employee.employee_number} - ${employee.first_name} ${employee.last_name} (${getEmployeeStatusLabel(employee.status)})` : ""}
+			title={employee ? `${employee.first_name} ${employee.last_name}` : "Medewerker"}
+			kicker="Medewerkerdetails"
+			icon="👤"
+			subtitle={employee ? `${employee.employee_number} · ${getEmployeeStatusLabel(employee.status)}` : ""}
 		>
 			{error && <p className="error">{error}</p>}
 
@@ -789,30 +844,8 @@ export default function EmployeeDetailPage() {
 
 			{activeTab === "profile" && employee && (
 				<section className="grid">
-					<div className="list-row" style={{ alignItems: "center" }}>
-						<div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-							{employee.profile_photo_url ? (
-								<Image
-									src={employee.profile_photo_url}
-									alt="Medewerker"
-									width={64}
-									height={64}
-									unoptimized
-									style={{ borderRadius: "50%", objectFit: "cover" }}
-								/>
-							) : (
-								<div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#e5e7eb", display: "grid", placeItems: "center" }}>Geen foto</div>
-							)}
-							<div>
-								<div><strong>Huidige afdeling:</strong> {records.find((r) => r.status === "active")?.department_name ?? "Niet gekoppeld"}</div>
-								<div className="muted"><strong>Directoraat:</strong> {records.find((r) => r.status === "active")?.directorate_name ?? "-"}</div>
-							</div>
-						</div>
-					</div>
-
 					{canManageEmployment ? (
 						<>
-							<h2 style={{ marginTop: 0 }}>Profiel bewerken</h2>
 							<EmployeeForm
 								initialValues={{
 									employee_number: employee.employee_number,
@@ -825,13 +858,44 @@ export default function EmployeeDetailPage() {
 									date_joined: employee.date_joined ?? "",
 									status: employee.status,
 								}}
+								existingPhotoUrl={employee.profile_photo_url}
+								displayName={`${employee.first_name} ${employee.last_name}`}
+								statusLabel={getEmployeeStatusLabel(employee.status)}
+								statusClass={`status-${employee.status}`}
+								departmentName={records.find((r) => r.status === "active")?.department_name ?? null}
+								directorateName={records.find((r) => r.status === "active")?.directorate_name ?? null}
 								onSubmit={handleEmployeeUpdate}
 								submitLabel={savingEmployee ? "Opslaan..." : "Medewerker opslaan"}
 							/>
-							{canDeleteEmployee && <button className="btn secondary" type="button" onClick={() => void handleEmployeeDelete()}>Medewerker verwijderen</button>}
+							{canDeleteEmployee && (
+								<button className="btn secondary" type="button" style={{ marginTop: "1rem" }} onClick={() => void handleEmployeeDelete()}>
+									Medewerker verwijderen
+								</button>
+							)}
 						</>
 					) : (
-						<p className="muted">Je hebt alleen leesrechten voor profielgegevens.</p>
+						<div className="employee-profile-header">
+							<div style={{ width: 96, height: 96, borderRadius: "50%", background: "#e8e2d8", display: "grid", placeItems: "center", fontSize: "2.2rem", flexShrink: 0 }}>
+								{employee.profile_photo_url
+									? <img src={employee.profile_photo_url} alt="" style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover" }} />
+									: "👤"}
+							</div>
+							<div>
+								<h2 className="employee-profile-name">{employee.first_name} {employee.last_name}</h2>
+								<div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.3rem" }}>
+									<span className={`employee-status-pill status-${employee.status}`}>{getEmployeeStatusLabel(employee.status)}</span>
+									<span className="muted" style={{ fontSize: "0.82rem" }}>{employee.employee_number}</span>
+								</div>
+								<div className="employee-profile-dept" style={{ marginTop: "0.5rem" }}>
+									<span className="employee-profile-dept-label">Afdeling</span>
+									{records.find((r) => r.status === "active")?.department_name ?? "Niet gekoppeld"}
+								</div>
+								<div className="employee-profile-dept">
+									<span className="employee-profile-dept-label">Directoraat</span>
+									{records.find((r) => r.status === "active")?.directorate_name ?? "—"}
+								</div>
+							</div>
+						</div>
 					)}
 				</section>
 			)}
