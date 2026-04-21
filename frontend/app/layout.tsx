@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
+import QueryProvider from "@/components/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "MRO-HRIS",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
 	<html lang="nl">
       <body>
-		<AppShell>{children}</AppShell>
+		<QueryProvider>
+			<AppShell>{children}</AppShell>
+		</QueryProvider>
 	  </body>
     </html>
   );
