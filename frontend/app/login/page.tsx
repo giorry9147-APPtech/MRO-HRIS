@@ -29,6 +29,7 @@ export default function LoginPage() {
 	return (
 		<div style={{
 			minHeight: "100vh",
+			width: "100vw",
 			display: "grid",
 			gridTemplateColumns: "1fr 1fr",
 			background: "var(--bg)",
@@ -76,7 +77,7 @@ export default function LoginPage() {
 						padding: "0.5rem 0.9rem",
 					}}>
 						<span style={{ fontSize: "1.4rem" }}>✦</span>
-						<span style={{ color: "#fff", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.02em" }}>MRO-HRIS</span>
+						<span style={{ color: "#fff", fontWeight: 700, fontSize: "1rem", letterSpacing: "0.02em" }}>MRO · HRIS</span>
 					</div>
 				</div>
 
@@ -84,12 +85,15 @@ export default function LoginPage() {
 				<div>
 					<h2 style={{
 						color: "#fff",
-						fontSize: "2rem",
+						fontSize: "1.7rem",
 						fontWeight: 700,
-						lineHeight: 1.2,
+						lineHeight: 1.25,
 						margin: "0 0 1rem",
 					}}>
-						Human Resource<br />Informatie Systeem
+						Ministerie Regionale Ontwikkeling<br />
+						<span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 400, fontSize: "1.1rem" }}>
+							Human Resource Information System
+						</span>
 					</h2>
 					<p style={{
 						color: "rgba(255,255,255,0.65)",

@@ -72,6 +72,10 @@ export default function AppShell({ children }: AppShellProps) {
 		router.replace("/login");
 	}
 
+	if (pathname === "/login") {
+		return <>{children}</>;
+	}
+
 	if (isPublicRoute) {
 		return <div className="page-shell">{children}</div>;
 	}
