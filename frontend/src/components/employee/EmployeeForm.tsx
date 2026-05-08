@@ -1,18 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { employeeSchema, type EmployeeValues } from "@/lib/schemas";
 
-export type EmployeeFormValues = {
-	employee_number: string;
-	first_name: string;
-	last_name: string;
-	email: string;
-	phone: string;
-	address: string;
-	profile_photo: File | null;
-	date_joined: string;
-	status: string;
-};
+export type EmployeeFormValues = EmployeeValues;
 
 type EmployeeFormProps = {
 	initialValues: EmployeeFormValues;
@@ -41,49 +34,45 @@ export default function EmployeeForm({
 	onSubmit,
 	submitLabel,
 }: EmployeeFormProps) {
-	const [values, setValues] = useState<EmployeeFormValues>(initialValues);
-	const [submitting, setSubmitting] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	useEffect(() => {
-		setValues(initialValues);
-		setPhotoPreview(null);
-	}, [initialValues]);
+	const {
+		register,
+		handleSubmit,
+		reset,
+		setValue,
+		formState: { errors, isSubmitting },
+	} = useForm<EmployeeFormValues>({
+		resolver: zodResolver(employeeSchema),
+		defaultValues: initialValues,
+	});
 
-	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault();
-		setSubmitting(true);
-		setError(null);
+	useEffect(() => {
+		reset(initialValues);
+		setPhotoPreview(null);
+	}, [initialValues, reset]);
+
+	const submit = handleSubmit(async (values) => {
+		setSubmitError(null);
 		try {
 			await onSubmit(values);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Opslaan mislukt.");
-		} finally {
-			setSubmitting(false);
+			setSubmitError(err instanceof Error ? err.message : "Opslaan mislukt.");
 		}
-	}
-
-	function setField<K extends keyof EmployeeFormValues>(field: K, value: EmployeeFormValues[K]) {
-		setValues((current) => ({ ...current, [field]: value }));
-	}
+	});
 
 	function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
 		const file = event.target.files?.[0] ?? null;
-		setField("profile_photo", file);
-		if (file) {
-			setPhotoPreview(URL.createObjectURL(file));
-		} else {
-			setPhotoPreview(null);
-		}
+		setValue("profile_photo", file, { shouldValidate: true });
+		setPhotoPreview(file ? URL.createObjectURL(file) : null);
 	}
 
 	const displayPhoto = photoPreview ?? existingPhotoUrl ?? null;
 
 	return (
-		<form onSubmit={handleSubmit}>
-			{/* Profile header: photo upload + identity summary */}
+		<form onSubmit={submit} noValidate>
 			<div className="employee-profile-header" style={{ marginBottom: "1.5rem" }}>
 				<div style={{ flexShrink: 0 }}>
 					<div className="photo-upload-wrap" onClick={() => fileInputRef.current?.click()}>
@@ -109,6 +98,11 @@ export default function EmployeeForm({
 						style={{ display: "none" }}
 						onChange={handlePhotoChange}
 					/>
+					{errors.profile_photo && (
+						<p style={{ color: "var(--danger)", fontSize: "0.75rem", marginTop: "0.4rem", textAlign: "center" }}>
+							{errors.profile_photo.message as string}
+						</p>
+					)}
 				</div>
 
 				{displayName && (
@@ -149,92 +143,71 @@ export default function EmployeeForm({
 
 			<div className="module-title-rule" style={{ marginBottom: "1.25rem" }} />
 
-			{/* 2-column fields */}
 			<div className="employee-form-fields">
-				<div className="form-field">
-					<label htmlFor="ef-employee-number">Personeelsnummer</label>
-					<input
-						id="ef-employee-number"
-						value={values.employee_number}
-						onChange={(e) => setField("employee_number", e.target.value)}
-						required
-					/>
-				</div>
-				<div className="form-field">
-					<label htmlFor="ef-date-joined">Datum in dienst</label>
-					<input
-						id="ef-date-joined"
-						type="date"
-						value={values.date_joined}
-						onChange={(e) => setField("date_joined", e.target.value)}
-					/>
-				</div>
-				<div className="form-field">
-					<label htmlFor="ef-first-name">Voornaam</label>
-					<input
-						id="ef-first-name"
-						value={values.first_name}
-						onChange={(e) => setField("first_name", e.target.value)}
-						required
-					/>
-				</div>
-				<div className="form-field">
-					<label htmlFor="ef-last-name">Achternaam</label>
-					<input
-						id="ef-last-name"
-						value={values.last_name}
-						onChange={(e) => setField("last_name", e.target.value)}
-						required
-					/>
-				</div>
-				<div className="form-field">
-					<label htmlFor="ef-email">E-mailadres</label>
-					<input
-						id="ef-email"
-						type="email"
-						value={values.email}
-						onChange={(e) => setField("email", e.target.value)}
-					/>
-				</div>
-				<div className="form-field">
-					<label htmlFor="ef-phone">Telefoon</label>
-					<input
-						id="ef-phone"
-						value={values.phone}
-						onChange={(e) => setField("phone", e.target.value)}
-					/>
-				</div>
-				<div className="form-field">
-					<label htmlFor="ef-status">Status</label>
-					<select
-						id="ef-status"
-						value={values.status}
-						onChange={(e) => setField("status", e.target.value)}
-					>
+				<Field label="Personeelsnummer" htmlFor="ef-employee-number" error={errors.employee_number?.message}>
+					<input id="ef-employee-number" {...register("employee_number")} />
+				</Field>
+
+				<Field label="Datum in dienst" htmlFor="ef-date-joined" error={errors.date_joined?.message}>
+					<input id="ef-date-joined" type="date" {...register("date_joined")} />
+				</Field>
+
+				<Field label="Voornaam" htmlFor="ef-first-name" error={errors.first_name?.message}>
+					<input id="ef-first-name" {...register("first_name")} />
+				</Field>
+
+				<Field label="Achternaam" htmlFor="ef-last-name" error={errors.last_name?.message}>
+					<input id="ef-last-name" {...register("last_name")} />
+				</Field>
+
+				<Field label="E-mailadres" htmlFor="ef-email" error={errors.email?.message}>
+					<input id="ef-email" type="email" {...register("email")} />
+				</Field>
+
+				<Field label="Telefoon" htmlFor="ef-phone" error={errors.phone?.message}>
+					<input id="ef-phone" {...register("phone")} />
+				</Field>
+
+				<Field label="Status" htmlFor="ef-status" error={errors.status?.message}>
+					<select id="ef-status" {...register("status")}>
 						<option value="active">Actief</option>
 						<option value="inactive">Inactief</option>
 						<option value="on_leave">Met verlof</option>
 						<option value="suspended">Geschorst</option>
 						<option value="exited">Uit dienst</option>
 					</select>
-				</div>
+				</Field>
+
 				<div className="form-field field-full">
 					<label htmlFor="ef-address">Adres</label>
-					<textarea
-						id="ef-address"
-						value={values.address}
-						onChange={(e) => setField("address", e.target.value)}
-						rows={3}
-					/>
+					<textarea id="ef-address" rows={3} {...register("address")} />
+					{errors.address && <span style={{ color: "var(--danger)", fontSize: "0.78rem" }}>{errors.address.message}</span>}
 				</div>
 			</div>
 
 			<div style={{ display: "flex", gap: "0.75rem", alignItems: "center", marginTop: "1.25rem" }}>
-				<button type="submit" disabled={submitting}>
-					{submitting ? "Bezig..." : submitLabel}
+				<button type="submit" disabled={isSubmitting}>
+					{isSubmitting ? "Bezig..." : submitLabel}
 				</button>
-				{error && <p style={{ margin: 0, color: "crimson", fontSize: "0.875rem" }}>{error}</p>}
+				{submitError && <p style={{ margin: 0, color: "crimson", fontSize: "0.875rem" }}>{submitError}</p>}
 			</div>
 		</form>
+	);
+}
+
+type FieldProps = {
+	label: string;
+	htmlFor: string;
+	error?: string;
+	children: React.ReactNode;
+};
+
+function Field({ label, htmlFor, error, children }: FieldProps) {
+	return (
+		<div className="form-field">
+			<label htmlFor={htmlFor}>{label}</label>
+			{children}
+			{error && <span style={{ color: "var(--danger)", fontSize: "0.78rem" }}>{error}</span>}
+		</div>
 	);
 }

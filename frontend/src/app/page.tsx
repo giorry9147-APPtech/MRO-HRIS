@@ -1,65 +1,46 @@
-import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+export default function Page() {
+	return (
+		<main className="grid" style={{ gap: "1rem" }}>
+			<section className="hero">
+				<div className="card">
+					<p className="muted" style={{ marginTop: 0 }}>MRO-HRIS</p>
+					<h1 style={{ marginTop: 0 }}>Een centraal platform voor al je HR-processen</h1>
+					<p className="muted">
+						Beheer medewerkers, dossiers, salarissen, documenten, bedrijfsmiddelen en rapportage vanuit een beveiligd platform.
+					</p>
+					<div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+						<Link className="btn link" href="/login">Ga naar inloggen</Link>
+						<Link className="btn secondary link" href="/dashboard">Open dashboard</Link>
+					</div>
+				</div>
+
+				<div className="card" style={{ background: "#f1fbfa" }}>
+					<h2 style={{ marginTop: 0 }}>Snel starten</h2>
+					<ol style={{ margin: 0, paddingLeft: "1.1rem" }}>
+						<li>Log in met je account</li>
+						<li>Open dashboard en kies een module</li>
+						<li>Maak medewerkers aan of werk ze bij</li>
+						<li>Volg documenten, salaris en bedrijfsmiddelen</li>
+					</ol>
+				</div>
+			</section>
+
+			<section className="card">
+				<h2 style={{ marginTop: 0 }}>Beschikbare modules</h2>
+				<div className="section-links">
+					<Link className="section-link" href="/employees">Medewerkers</Link>
+					<Link className="section-link" href="/functions">Functies</Link>
+					<Link className="section-link" href="/positions">Werkposities</Link>
+					<Link className="section-link" href="/departments">Afdelingen</Link>
+					<Link className="section-link" href="/directorates">Directoraten</Link>
+					<Link className="section-link" href="/documents">Documenten</Link>
+					<Link className="section-link" href="/assets">Bedrijfsmiddelen</Link>
+					<Link className="section-link" href="/reports">Rapporten</Link>
+					<Link className="section-link" href="/login">Authenticatie</Link>
+				</div>
+			</section>
+		</main>
+	);
 }

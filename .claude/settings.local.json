@@ -3,7 +3,8 @@
     "allow": [
       "Bash(xargs basename *)",
       "Bash(composer run *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npm install *)"
     ]
   }
 }
