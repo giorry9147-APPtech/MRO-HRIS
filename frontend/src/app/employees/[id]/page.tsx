@@ -607,7 +607,7 @@ export default function EmployeeDetailPage() {
 									address: employee.address ?? "",
 									profile_photo: null,
 									date_joined: employee.date_joined ?? "",
-									status: employee.status,
+									status: employee.status as EmployeeFormValues["status"],
 								}}
 								existingPhotoUrl={employee.profile_photo_url}
 								displayName={`${employee.first_name} ${employee.last_name}`}
