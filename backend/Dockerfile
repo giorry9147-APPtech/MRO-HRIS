@@ -9,7 +9,7 @@ WORKDIR /app
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
 COPY composer.json composer.lock ./
-RUN composer install \
+RUN composer update \
         --no-dev \
         --no-scripts \
         --no-autoloader \
